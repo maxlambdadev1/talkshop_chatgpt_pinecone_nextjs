@@ -1,7 +1,7 @@
 import multiparty from 'multiparty';
 import { NextApiRequest, NextApiResponse } from 'next';
 import path from 'path';
-import fs from 'fs';
+import fs from 'fs-extra';
 
 interface UploadedFile {
   fieldName: string;
@@ -49,7 +49,14 @@ export default async function handler(
           projectTmpDir,
           uploadedFile.originalFilename,
         );
-        fs.renameSync(uploadedFile.path, newFilePath);
+        // fs.renameSync(uploadedFile.path, newFilePath);       
+        await fs.move(uploadedFile.path, newFilePath, (err : any) => {
+          if (err) {
+            console.error(err);
+          } else {
+            console.log('File moved successfully!');
+          }
+        });     
 
         uploadedFiles.push(newFilePath);
       } else {
