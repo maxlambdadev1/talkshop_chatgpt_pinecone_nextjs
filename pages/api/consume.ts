@@ -8,6 +8,9 @@ import { TextLoader } from 'langchain/document_loaders/fs/text';
 import { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs';
 import { initPinecone } from '@/utils/pinecone-client';
+import Namespace from '@/models/Namespace';
+import connectDB from '@/utils/mongoConnection';
+import { getSession } from 'next-auth/react';
 
 const filePath = process.env.NODE_ENV === 'production' ? '/tmp' : 'tmp';
 
@@ -15,6 +18,13 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
+  const session = await getSession({ req });
+  if (!session) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+  const userEmail = session?.user?.email;
+  const { namespaceName, chunkSize, overlapSize } = req.query;
+
   const openAIapiKey = req.headers['x-openai-key'];
   const pineconeApiKey = req.headers['x-pinecone-key'];
   const targetIndex = req.headers['x-index-name'] as string;
@@ -25,7 +35,9 @@ export default async function handler(
     pineconeEnvironment as string,
   );
 
-  const { namespaceName, chunkSize, overlapSize } = req.query;
+  if (!pinecone) {
+    return res.status(400).json({ message: 'There is no correct pinecone' });
+  }
 
   try {
     // Load PDF files from the specified directory
@@ -72,6 +84,13 @@ export default async function handler(
     filesToDelete.forEach((file) => {
       fs.unlinkSync(`${filePath}/${file}`);
     });
+
+    await connectDB();
+    const newNamespace = new Namespace({
+      userEmail: userEmail as string,
+      name: namespaceName as string,
+    });
+    await newNamespace.save();
 
     res.status(200).json({ message: 'Data ingestion complete' });
   } catch (error) {

@@ -44,8 +44,12 @@ export default async function handler(
     return res.status(400).json({ message: 'No question in the request' });
   }
 
+  if (!pinecone) {
+    return res.status(400).json({ message: 'There is no correct pinecone' });
+  }
+
   const sanitizedQuestion = question.trim().replaceAll('\n', ' ');
-  try {
+  try {    
     const index = pinecone.Index(targetIndex as string);
 
     const vectorStore = await PineconeStore.fromExistingIndex(

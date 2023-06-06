@@ -43,6 +43,7 @@
   },
   "devDependencies": {
     "@types/formidable": "^2.0.5",
+    "@types/fs-extra": "^11.0.1",
     "@types/lodash": "^4.14.195",
     "@types/multiparty": "^0.0.33",
     "@types/node": "^18.14.6",
