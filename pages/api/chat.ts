@@ -3,6 +3,9 @@ import { OpenAIEmbeddings } from 'langchain/embeddings/openai';
 import { PineconeStore } from 'langchain/vectorstores/pinecone';
 import { makeChain } from '@/utils/makechain';
 import { initPinecone } from '@/utils/pinecone-client';
+import { SourceDoc } from '@/types';
+import connectDB from '@/utils/mongoConnection';
+import Message from '@/models/Message';
 
 export default async function handler(
   req: NextApiRequest,
@@ -15,6 +18,7 @@ export default async function handler(
     selectedNamespace,
     returnSourceDocuments,
     modelTemperature,
+    userEmail,
   } = req.body;
 
   const openAIapiKey = req.headers['x-openai-key'];

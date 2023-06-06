@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 
 interface useNamespacesProps {
+  // userEmail : string,
   pineconeApiKey: string;
   pineconeIndexName: string;
   pineconeEnvironment: string;
 }
 
 export default function useNamespaces(
+  // userEmail : string,
   pineconeApiKey: string,
   pineconeIndexName: string,
   pineconeEnvironment: string,
@@ -43,8 +45,7 @@ export default function useNamespaces(
         console.error(error.message);
       }
     };
-
-    fetchNamespaces();
+    if (!!pineconeApiKey && !!pineconeIndexName && !!pineconeEnvironment) fetchNamespaces();
   }, [pineconeApiKey, pineconeIndexName, pineconeEnvironment]);
 
   useEffect(() => {

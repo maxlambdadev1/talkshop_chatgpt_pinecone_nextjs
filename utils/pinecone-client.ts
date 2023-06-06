@@ -2,6 +2,7 @@ import { PineconeClient } from '@pinecone-database/pinecone';
 
 export async function initPinecone(apiKey: string, environment: string) {
   try {
+    if (!apiKey || !environment) return [];
     const pinecone = new PineconeClient();
 
     await pinecone.init({

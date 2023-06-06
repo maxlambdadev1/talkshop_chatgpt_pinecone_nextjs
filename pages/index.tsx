@@ -5,6 +5,8 @@ import React, {
   useEffect,
   useCallback,
 } from 'react';
+import { useRouter } from 'next/router';
+import { useSession } from 'next-auth/react';
 import { Dialog, Transition } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { ConversationMessage } from '@/types/ConversationMessage';
@@ -21,11 +23,21 @@ import useApiKeys from '@/hooks/useKeys';
 
 export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
+
+  const router = useRouter();
   const [query, setQuery] = useState<string>('');
   const [modelTemperature, setModelTemperature] = useState<number>(0.5);
 
+  const { data: session, status } = useSession({
+    required: true,
+    onUnauthenticated: () => router.push('/login'),
+  });
   const [returnSourceDocuments, setReturnSourceDocuments] =
     useState<boolean>(false);
+
+  const [userEmail, setUserEmail] = useState<string>('');
+  const [userName, setUserName] = useState<string>('');
+  const [userImage, setUserImage] = useState<string>('');
 
   const {
     openAIapiKey,
@@ -127,6 +139,18 @@ export default function Home() {
   }, [selectedChatId, getConversation]);
 
   useEffect(() => {
+    if (status === 'authenticated' && session?.user?.email) {
+      setUserEmail(session.user.email);
+      if (session?.user?.name) {
+        setUserName(session.user.name);
+      }
+      if (session?.user?.image) {
+        setUserImage(session.user.image);
+      }
+    }
+  }, [status, session]);
+
+  useEffect(() => {
     if (selectedNamespace && chatList.length > 0 && !selectedChatId) {
       setSelectedChatId(chatList[0].chatId);
     }
@@ -222,6 +246,7 @@ export default function Home() {
         selectedNamespace,
         returnSourceDocuments,
         modelTemperature,
+        userEmail,
       }),
     });
 
@@ -240,12 +265,12 @@ export default function Home() {
               message: data.text,
               sourceDocs: data.sourceDocuments
                 ? data.sourceDocuments.map(
-                    (doc: any) =>
-                      new Document({
-                        pageContent: doc.pageContent,
-                        metadata: { source: doc.metadata.source },
-                      }),
-                  )
+                  (doc: any) =>
+                    new Document({
+                      pageContent: doc.pageContent,
+                      metadata: { source: doc.metadata.source },
+                    }),
+                )
                 : undefined,
             } as ConversationMessage,
           ],
@@ -379,7 +404,11 @@ export default function Home() {
         </div>
 
         <div className="lg:pl-72 h-screen">
-          <Header setSidebarOpen={setSidebarOpen} />
+          <Header setSidebarOpen={setSidebarOpen} 
+              sidebarOpen={sidebarOpen}
+              userImage={userImage}
+              userName={userName}
+          />
 
           <main className="flex flex-col">
             {selectedNamespace !== '' && nameSpaceHasChats ? (

@@ -6,6 +6,7 @@ type NamespaceSummary = {
 };
 
 const getNamespaces = async (req: NextApiRequest, res: NextApiResponse) => {
+  // const userEmail = req.query.userEmail;
   const pineconeApiKey = req.headers['x-api-key'];
   const targetIndex = req.headers['x-index-name'] as string;
   const pineconeEnvironment = req.headers['x-environment'];
