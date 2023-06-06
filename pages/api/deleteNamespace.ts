@@ -34,9 +34,9 @@ export default async function handler(
       name: namespace as string,
       userEmail : userEmail  as string
     });
-    if (!existingNamespace) await Namespace.deleteOne({ name: namespace, userEmail });
+    if (!!existingNamespace) await Namespace.deleteOne({ name: namespace, userEmail });
     else return res.status(400).json({message : "You cann't delete the namespace"});
-    
+
     if (!pinecone) {
       return res.status(400).json({ message: 'There is no correct pinecone' });
     }

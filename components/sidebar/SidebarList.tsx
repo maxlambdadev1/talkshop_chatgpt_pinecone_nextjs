@@ -57,16 +57,6 @@ const SidebarList: React.FC<SidebarListProps> = ({
               modelTemperature={modelTemperature}
               setModelTemperature={setModelTemperature}
             />
-
-            <Button
-              buttonType="primary"
-              buttonText="New chat"
-              onClick={async () => {
-                const newChatId = createChat();
-                setSelectedChatId(newChatId);
-              }}
-              icon={PlusCircleIcon}
-            />
           </div>
         )}
       </div>
@@ -83,6 +73,20 @@ const SidebarList: React.FC<SidebarListProps> = ({
             setSelectedNamespace={setSelectedNamespace}
           />
         </div>
+
+        {selectedNamespace && (
+          <div className="px-4 space-y-3 mb-4">           
+            <Button
+              buttonType="primary"
+              buttonText="New chat"
+              onClick={async () => {
+                const newChatId = createChat();
+                setSelectedChatId(newChatId);
+              }}
+              icon={PlusCircleIcon}
+            />
+          </div>
+        )}
 
         <div className="px-4 text-xs sm:text-sm font-semibold leading-6 text-blue-400">
           Your chats
