@@ -1,4 +1,4 @@
-# doc-chatbot: GPT x Pinecone x LangChain
+# talkshop (doc-chatbot: GPT x Pinecone x LangChain)
 
 ## Features
 
