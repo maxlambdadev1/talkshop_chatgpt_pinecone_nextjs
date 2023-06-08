@@ -435,7 +435,7 @@ export default function Home() {
 
           <main className="flex flex-col">
             {selectedNamespace !== '' && nameSpaceHasChats ? (
-              <div className="flex-grow pb-36">
+              <div className="flex-grow pb-48">
                 <div className="h-full">
                   <MessageList
                     messages={messages.map(mapConversationMessageToMessage)}
