@@ -2,8 +2,10 @@ import { initPinecone } from '@/utils/pinecone-client';
 import { NextApiRequest, NextApiResponse } from 'next';
 import connectDB from '@/utils/mongoConnection';
 import Namespace from '@/models/Namespace';
+import { ChatModel, IChat } from '@/models/ChatModel';
+import Message from '@/models/Message';
+import mongoose from 'mongoose';
 import { getSession } from 'next-auth/react';
-
 
 export default async function handler(
   req: NextApiRequest,
@@ -32,10 +34,11 @@ export default async function handler(
     await connectDB();
     const existingNamespace = await Namespace.findOne({
       name: namespace as string,
-      userEmail : userEmail  as string
+      userEmail: userEmail as string,
     });
-    if (!!existingNamespace) await Namespace.deleteOne({ name: namespace, userEmail });
-    else return res.status(400).json({message : "You cann't delete the namespace"});
+    if (!existingNamespace) {
+      return res.status(400).json({ message: "You cann't delete the namespace" });
+    }
 
     if (!pinecone) {
       return res.status(400).json({ message: 'There is no correct pinecone' });
@@ -49,6 +52,10 @@ export default async function handler(
       },
     });
 
+    const ChatModelTyped = ChatModel as mongoose.Model<IChat>;
+    await Namespace.deleteOne({ name: namespace, userEmail });
+    await ChatModelTyped.deleteMany({  namespace, userEmail });
+    await Message.deleteMany({ namespace, userEmail });
 
     res.status(200).json({ message: 'Namespace deleted successfully.' });
   } catch (error) {

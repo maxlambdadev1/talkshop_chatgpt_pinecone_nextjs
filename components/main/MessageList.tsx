@@ -13,14 +13,14 @@ import { Message } from '@/types';
 interface MessageListProps {
   messages: Message[];
   loading: boolean;
-  messageListRef: React.RefObject<HTMLDivElement>;
+  // messageListRef: React.RefObject<HTMLDivElement>;
 }
 
-function MessageList({ messages, loading, messageListRef }: MessageListProps) {
+function MessageList({ messages, loading }: MessageListProps) {
   return (
     <>
       <div className="overflow-y-auto">
-        <div ref={messageListRef}>
+        <div >
           {messages.map((message, index) => {
             const isApiMessage = message.type === 'apiMessage';
             const messageClasses = ` ${

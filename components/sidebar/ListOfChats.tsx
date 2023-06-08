@@ -50,7 +50,7 @@ const ListOfChats = ({
           )}
           onClick={() => handleChatClick(chatId)}
         >
-          {chatNames[chatId] || `Chat ${filteredChatList.length - 1 - index}`}
+          {chatNames[chatId] === 'Chat' ? `Chat ${filteredChatList.length - 1 - index}` : chatNames[chatId] }
           {chatId === selectedChatId && (
             <div className="ml-auto">
               <button

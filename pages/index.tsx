@@ -63,8 +63,7 @@ export default function Home() {
     updateChatName,
     filteredChatList,
     getConversation,
-    updateConversation,
-  } = useChats(selectedNamespace);
+  } = useChats(selectedNamespace, userEmail);
 
   const userHasNamespaces = namespaces.length > 0;
 
@@ -76,12 +75,7 @@ export default function Home() {
     history: [string, string][];
     pendingSourceDocs?: Document[];
   }>({
-    messages: [
-      {
-        message: 'Hi, what would you like to know about these documents?',
-        type: 'apiMessage',
-      },
-    ],
+    messages: [],
     history: [],
   });
 
@@ -102,41 +96,58 @@ export default function Home() {
   const messageListRef = useRef<HTMLDivElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
-  const fetchChatHistory = useCallback(() => {
+  const fetchChatHistory = useCallback(async () => {
     try {
-      const conversations = getConversation(selectedChatId);
-
-      if (!conversations || !conversations.messages) {
+      const conversations = await getConversation(selectedChatId);
+      console.log('conversations', conversations);
+      if (!conversations) {
         console.error('Failed to fetch chat history: No conversations found.');
         return;
       }
 
-      const pairedMessages: [any, any][] = [];
-      const data = conversations.messages;
+      const initialConversation = {
+        messages: [
+          {
+            message: 'Hi, what would you like to know about these documents?',
+            type: 'apiMessage' as const,
+          },
+        ],
+        history: [],
+      };
 
-      for (let i = 0; i < data.length; i += 2) {
-        pairedMessages.push([data[i], data[i + 1]]);
+      if (conversations.length > 0) {
+        const pairedMessages: [any, any][] = [];
+        const data = conversations;
+
+        for (let i = 0; i < data.length; i += 2) {
+          pairedMessages.push([data[i], data[i + 1]]);
+        }
+
+        setConversation((conversation: any) => ({
+          ...conversation,
+          messages: [...initialConversation.messages,
+          ...data.map((message: any) => ({
+            type: message.sender === 'user' ? 'userMessage' : 'apiMessage',
+            message: message.content,
+            sourceDocs: message.sourceDocs?.map((doc: any) => ({
+              pageContent: doc.pageContent,
+              metadata: { source: doc.metadata.source },
+            })),
+          }))],
+          history: [...initialConversation.history,
+          ...pairedMessages.map(([userMessage, botMessage]: any) => [
+            userMessage.content,
+            botMessage?.content || '',
+          ])],
+        }));
+      } else {
+        setConversation(initialConversation);
       }
 
-      setConversation((conversation) => ({
-        ...conversation,
-        messages: data.map((message: any) => ({
-          type: message.type === 'userMessage' ? 'userMessage' : 'apiMessage',
-          message: message.message,
-          sourceDocs: message.sourceDocs?.map((doc: any) => ({
-            pageContent: doc.pageContent,
-            metadata: { source: doc.metadata.source },
-          })),
-        })),
-        history: pairedMessages.map(([userMessage, botMessage]: any) => [
-          userMessage.message,
-          botMessage?.message || '',
-        ]),
-      }));
     } catch (error) {
       console.error('Failed to fetch chat history:', error);
     }
-  }, [selectedChatId, getConversation]);
+  }, [selectedChatId]);
 
   useEffect(() => {
     if (status === 'authenticated' && session?.user?.email) {
@@ -181,6 +192,7 @@ export default function Home() {
 
   useEffect(() => {
     if (selectedChatId) {
+      console.log('selectedChatId', selectedChatId)
       fetchChatHistory();
     }
   }, [
@@ -220,7 +232,6 @@ export default function Home() {
     setLoading(true);
     setQuery('');
 
-    const conversation = getConversation(selectedChatId);
     if (
       !openAIapiKey ||
       !pineconeApiKey ||
@@ -230,7 +241,8 @@ export default function Home() {
       console.error('API keys not found.');
       return;
     }
-    const response = await fetch('/api/chat', {
+    console.log('history', history);
+    const response = await fetch('/api/message/create', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -242,7 +254,7 @@ export default function Home() {
       body: JSON.stringify({
         question,
         history: conversation.history,
-        selectedChatId,
+        chatId: selectedChatId,
         selectedNamespace,
         returnSourceDocuments,
         modelTemperature,
@@ -280,14 +292,21 @@ export default function Home() {
           ],
         };
 
-        updateConversation(selectedChatId, updatedConversation);
         return updatedConversation;
       });
     }
 
     setLoading(false);
-    messageListRef.current?.scrollTo(0, messageListRef.current.scrollHeight);
   }
+
+  useEffect(() => {
+    if (!!conversation) {
+      let element: any = messageListRef.current;
+      if (!!element) {
+        window.scrollTo(0, element.scrollHeight);
+      }
+    }
+  }, [conversation])
 
   const handleEnter = (e: any) => {
     if (e.key === 'Enter' && query) {
@@ -362,6 +381,7 @@ export default function Home() {
                       )}
                       selectedChatId={selectedChatId}
                       setSelectedChatId={setSelectedChatId}
+                      setConversation={setConversation}
                       chatNames={chatNames}
                       updateChatName={updateChatName}
                       deleteChat={deleteChat}
@@ -390,6 +410,7 @@ export default function Home() {
               filteredChatList={filteredChatList.map((chat) => chat.chatId)}
               selectedChatId={selectedChatId}
               setSelectedChatId={setSelectedChatId}
+              setConversation={setConversation}
               chatNames={chatNames}
               updateChatName={updateChatName}
               deleteChat={deleteChat}
@@ -403,11 +424,13 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="lg:pl-72 h-screen">
-          <Header setSidebarOpen={setSidebarOpen} 
-              sidebarOpen={sidebarOpen}
-              userImage={userImage}
-              userName={userName}
+        <div className="lg:pl-72 h-screen"
+          ref={messageListRef}
+        >
+          <Header setSidebarOpen={setSidebarOpen}
+            sidebarOpen={sidebarOpen}
+            userImage={userImage}
+            userName={userName}
           />
 
           <main className="flex flex-col">
@@ -417,7 +440,6 @@ export default function Home() {
                   <MessageList
                     messages={messages.map(mapConversationMessageToMessage)}
                     loading={loading}
-                    messageListRef={messageListRef}
                   />
                 </div>
               </div>

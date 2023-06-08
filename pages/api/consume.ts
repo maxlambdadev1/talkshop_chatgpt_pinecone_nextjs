@@ -30,6 +30,26 @@ export default async function handler(
   const targetIndex = req.headers['x-index-name'] as string;
   const pineconeEnvironment = req.headers['x-environment'];
 
+  await connectDB();
+  const existingNamespace = await Namespace.findOne({
+    name: namespaceName as string,
+  });
+
+  if (!existingNamespace) {
+    const newNamespace = new Namespace({
+      userEmail: userEmail as string,
+      name: namespaceName as string,
+    });
+    await newNamespace.save();
+  } else {
+    const filesToDelete = fs
+      .readdirSync(filePath)
+    filesToDelete.forEach((file) => {
+      fs.unlinkSync(`${filePath}/${file}`);
+    });
+    return res.status(400).json({ message : 'There is a same namespace.'})
+  }
+
   const pinecone = await initPinecone(
     pineconeApiKey as string,
     pineconeEnvironment as string,
@@ -84,13 +104,6 @@ export default async function handler(
     filesToDelete.forEach((file) => {
       fs.unlinkSync(`${filePath}/${file}`);
     });
-
-    await connectDB();
-    const newNamespace = new Namespace({
-      userEmail: userEmail as string,
-      name: namespaceName as string,
-    });
-    await newNamespace.save();
 
     res.status(200).json({ message: 'Data ingestion complete' });
   } catch (error) {

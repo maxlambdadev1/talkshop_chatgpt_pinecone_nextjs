@@ -1,95 +1,160 @@
 import { ConversationMessage } from '@/types/ConversationMessage';
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useLocalStorage } from '../libs/localStorage';
 
-export function useChats(namespace: string) {
-  const [allConversations, setAllConversations] = useLocalStorage<{
-    [key: string]: {
-      messages: ConversationMessage[];
-      history: [string, string][];
-    };
-  }>('allConversations', {});
-
-  const [allChats, setAllChats] = useLocalStorage<
-    { namespace: string; chatId: string }[]
-  >('allChats', []);
-
-  const chatList = useMemo(
-    () => allChats.filter((chat) => chat.namespace === namespace),
-    [allChats, namespace],
-  );
-
-  const [chatNames, setChatNames] = useLocalStorage<{ [key: string]: string }>(
-    `chatNames-${namespace}`,
-    {},
-  );
-
+export function useChats(namespace: string, userEmail: string) {
+  const [chatList, setChatList] = useState<any[]>([]);
+  const [chatNames, setChatNames] = useState<any>({});
   const [selectedChatId, setSelectedChatId] = useState<string>('');
 
-  const getConversation = useCallback(
-    (chatId: string) => {
-      return allConversations[chatId] || { messages: [], history: [] };
-    },
-    [allConversations],
-  );
+  useEffect(() => {
+    const fetchChatList = async (namespace: string, userEmail: string) => {
+      try {
+        const response = await fetch(
+          `/api/chat/all?namespace=${namespace}&userEmail=${userEmail}`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        );
+        const data = await response.json();
 
-  function updateConversation(
-    chatId: string,
-    conversation: {
-      messages: ConversationMessage[];
-      history: [string, string][];
-    },
-  ) {
-    const updatedConversations = {
-      ...allConversations,
-      [chatId]: conversation,
-    };
-    setAllConversations(updatedConversations);
-  }
-
-  function updateChatName(chatId: string, newChatName: string) {
-    const updatedChatNames = { ...chatNames, [chatId]: newChatName };
-    setChatNames(updatedChatNames);
-  }
-
-  function createChat() {
-    const newChatId = uuidv4();
-    const updatedAllChats = [...allChats, { namespace, chatId: newChatId }];
-    setAllChats(updatedAllChats);
-
-    const initialConversation = {
-      messages: [
-        {
-          message: 'Hi, what would you like to know about these documents?',
-          type: 'apiMessage' as const,
-        },
-      ],
-      history: [],
-    };
-
-    updateConversation(newChatId, initialConversation);
-
-    return newChatId;
-  }
-
-  function deleteChat(chatIdToDelete: string) {
-    const updatedAllChats = allChats.filter(
-      (chat) => chat.chatId !== chatIdToDelete,
-    );
-    setAllChats(updatedAllChats);
-
-    if (chatIdToDelete === selectedChatId) {
-      const deletedChatIndex = allChats.findIndex(
-        (chat) => chat.chatId === chatIdToDelete,
-      );
-      let newSelectedChatId = '';
-      if (updatedAllChats[deletedChatIndex]) {
-        newSelectedChatId = updatedAllChats[deletedChatIndex].chatId;
-      } else if (deletedChatIndex > 0) {
-        newSelectedChatId = updatedAllChats[deletedChatIndex - 1].chatId;
+        if (response.ok) {
+          setChatList(data);
+        } else {
+          console.error(data.error);
+        }
+      } catch (error: any) {
+        console.error(error.message);
       }
-      setSelectedChatId(newSelectedChatId);
+    };
+    if (!!namespace && !!userEmail) fetchChatList(namespace, userEmail);
+  }, [namespace, userEmail]);
+
+  useEffect(() => {
+    if (!!chatList && chatList.length > 0) {
+      const temp : any = {};
+      chatList.forEach((chat : any) => {temp[chat.chatId] = chat?.title})
+      setChatNames(temp);
+    }
+  }, [chatList]);
+
+  const getConversation = async (chatId: string) => {
+      const fetchMessages = async (chatId : string, namespace: string, userEmail: string) => {
+        try {
+          const response = await fetch(
+            `/api/message/all?chatId=${chatId}&namespace=${namespace}&userEmail=${userEmail}`,
+            {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            },
+          );
+          const data = await response.json();
+          if (response.ok) {
+            return data;
+          } else return [];
+        } catch (error: any) {
+          console.error(error.message);
+          return [];
+        }
+      };
+      if (!!chatId && !!namespace && !!userEmail) {
+        const messages  = fetchMessages(chatId, namespace, userEmail);
+        return messages;
+      } else  return [];
+    };
+
+  async function updateChatName(chatId: string, newChatName: string) {
+    try {
+      const response = await fetch(`/api/chat/update`, {
+        method : 'PUT', 
+        headers : {
+          'Content-Type': 'application/json',
+        },
+        body : JSON.stringify({
+          chatId , title : newChatName, namespace 
+        })
+      })
+      const res = response.json();
+
+      if (response.ok) {
+        const updatedChatNames = {...chatNames, [chatId]: newChatName };
+        console.log('updatedChatNames')
+        setChatNames(updatedChatNames);
+      }
+    } catch(err) {
+      console.log('error', err);
+    }
+  }
+
+  async function createChat(title : string) {
+    const chatId = uuidv4();        
+    try {
+      const response = await fetch(
+        `/api/chat/create`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body : JSON.stringify({
+            chatId , title, namespace, userEmail 
+          })
+        },
+      );
+      const data = await response.json();
+
+      if (response.ok) {
+        const updatedChatList = [...chatList, {...data }];
+        setChatList(updatedChatList);
+        return chatId;
+      } else {
+        console.error(data.error);
+      }
+    } catch (error: any) {
+      console.error(error.message);
+    }
+    return '';
+  }
+
+  async function deleteChat(chatIdToDelete: string) {
+    try {
+      const response = await fetch(`/api/chat/delete`, {
+        method : 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body : JSON.stringify({
+          chatId : chatIdToDelete ,  namespace 
+        })
+      })
+
+      if (response.ok) {
+        const updatedChatList:any = chatList.filter(
+          (chat : any) => chat?.chatId !== chatIdToDelete,
+        );
+        setChatList(updatedChatList);
+    
+        if (chatIdToDelete === selectedChatId) {
+          const deletedChatIndex = chatList.findIndex(
+            (chat : any) => chat.chatId === chatIdToDelete,
+          );
+          let newSelectedChatId = '';
+          if (updatedChatList[deletedChatIndex]) {
+            newSelectedChatId = updatedChatList[deletedChatIndex].chatId;
+          } else if (deletedChatIndex > 0) {
+            newSelectedChatId = updatedChatList[deletedChatIndex - 1].chatId;
+          }
+          setSelectedChatId(newSelectedChatId);
+        }
+      }
+    } catch (err) {
+      console.log(err);
     }
   }
 
@@ -107,6 +172,5 @@ export function useChats(namespace: string) {
     updateChatName,
     filteredChatList,
     getConversation,
-    updateConversation,
   };
 }

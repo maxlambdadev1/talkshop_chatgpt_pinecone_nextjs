@@ -7,7 +7,7 @@ import SourceDocumentsToggle from './SourceDocumentsToggle';
 import ModelTemperature from './ModelTemperature';
 
 interface SidebarListProps {
-  createChat: () => string;
+  createChat: (title : string) => Promise<string>;
   selectedNamespace: string;
   returnSourceDocuments: boolean;
   setReturnSourceDocuments: React.Dispatch<React.SetStateAction<boolean>>;
@@ -16,6 +16,7 @@ interface SidebarListProps {
   filteredChatList: string[];
   selectedChatId: string;
   setSelectedChatId: React.Dispatch<React.SetStateAction<string>>;
+  setConversation: React.Dispatch<React.SetStateAction<any>>;
   nameSpaceHasChats: boolean;
   chatNames: Record<string, string>;
   updateChatName: (chatId: string, newName: string) => void;
@@ -35,6 +36,7 @@ const SidebarList: React.FC<SidebarListProps> = ({
   selectedChatId,
   createChat,
   setSelectedChatId,
+  setConversation,
   nameSpaceHasChats,
   chatNames,
   updateChatName,
@@ -80,8 +82,18 @@ const SidebarList: React.FC<SidebarListProps> = ({
               buttonType="primary"
               buttonText="New chat"
               onClick={async () => {
-                const newChatId = createChat();
-                setSelectedChatId(newChatId);
+                const newChatId = await createChat('Chat');
+                setSelectedChatId(newChatId);    
+                const initialConversation = {
+                  messages: [
+                    {
+                      message: 'Hi, what would you like to know about these documents?',
+                      type: 'apiMessage' as const,
+                    },
+                  ],
+                  history: [],
+                };            
+                setConversation(initialConversation);
               }}
               icon={PlusCircleIcon}
             />
