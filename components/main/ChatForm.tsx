@@ -70,9 +70,11 @@ const ChatForm = ({
       let value = item.value;
       categories.forEach((item1: any) => { if (value === item1.dataName) arr.push(item1); });
     })
-    setSelectCategories(arr.map((item: any) => ({ value: item.categoryName, label: item.categoryName })))
+    const arr1 = arr.map((item: any) => ({ value: item.categoryName, label: item.categoryName }));
+    setSelectedCategory({});
+    setPrompts([]);
+    setSelectCategories(arr1)
   }, [selectedData, categories]);
-
 
   const getPrompts = async (dataName: string, categoryName: string) => {
     try {
@@ -111,11 +113,6 @@ const ChatForm = ({
   }, [selectedCategory, categories]);
 
 
-  useEffect(() => {
-    setSelectedCategory({});
-    setPrompts([]);
-  }, [selectCategories]);
-
   const submitPrompt = (prompt: string) => {
     setQuery(prompt);
     setTimeout(() => {
@@ -145,93 +142,98 @@ const ChatForm = ({
   const customStyles = {
     control: (provided: any) => ({
       ...provided,
-      backgroundColor: 'rgb(55 65 81 / 0.5)'
+      backgroundColor: 'rgb(55 65 81 / 0.5)',
+      borderColor: 'rgb(55 65 81 / 0.5)',
     }),
-    singleValue: (provided:any) => ({
+    singleValue: (provided: any) => ({
       ...provided,
       color: 'rgb(209 213 219)'
     })
   };
 
   return (
-    <div className='w-full px-4 sm:px-4'>
-      <div className='flex'>
-        <div className='w-full w-1/2 sm:w-48'>
-          <Select
-            value={selectedData}
-            onChange={(selectedData: any) => setSelectedData(selectedData)}
-            options={selectData}
-            isMulti
-            menuPlacement='top'
-            styles={customStyles}
-          />
-        </div>
-        <div className='w-full w-1/2 ml-2 sm:w-48 sm:ml-4'>
-          <Select
-            value={selectedCategory}
-            onChange={(selectedCategory: any) => setSelectedCategory(selectedCategory)}
-            options={selectCategories}
-            menuPlacement='top'
-            styles={customStyles}
-          />
-        </div>
-      </div>
-      {!!prompts && prompts.length > 0 && (
-        <div className='pt-3'>
-          {prompts && prompts.map((prompt: any, index: number) => (
-            <button key={index}
-              className='px-2 py-1 mr-2 bg-gray-700/50 text-gray-300 rounded-lg hover:opacity-80'
-              onClick={() => submitPrompt(prompt.prompt)}
-            >
-              {prompt.prompt}
-            </button>
-          ))}
-        </div>
-      )}
-      <form
-        onSubmit={handleSubmit}
-        className="items-center w-full justify-center flex py-3 sm:pb-4"
-      >
-        <label htmlFor="userInput" className="sr-only">
-          Your message
-        </label>
-        <div className="flex w-full align-center justify-center max-w-3xl items-center rounded-lg bg-gray-170 shadow-2xl">
-          <textarea
-            disabled={loading}
-            onKeyDown={handleEnter}
-            ref={otherRef}
-            className="flex items-center justify-center w-full text-xs sm:text-sm md:text-base rounded-lg border bg-gray-900 border-gray-700 placeholder-gray-400 text-white focus:outline-none resize-none whitespace-pre-wrap overflow-y-auto"
-            autoFocus={false}
-            rows={1}
-            maxLength={2048}
-            id="userInput"
-            name="userInput"
-            placeholder={
-              loading
-                ? 'Waiting for response...'
-                : error
-                  ? 'Error occurred. Try again.'
-                  : 'Your message...'
-            }
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-        </div>
-        <button
-          ref={submitRef}
-          type="submit"
-          disabled={loading}
-          className="inline-flex justify-center p-2 rounded-full cursor-pointer text-blue-500 hover:text-blue-300"
-        >
-          {loading ? (
-            <></>
-          ) : error ? (
-            <ExclamationCircleIcon className="h-6 w-6 text-red-500" />
-          ) : (
-            <PaperAirplaneIcon className="h-6 w-6" />
+    <div className='w-full'>
+      <div className='w-full max-w-4xl m-auto px-4 sm:px-8'>
+        <div className='w-full'>
+          <div className='flex'>
+            <div className='w-full w-1/2 sm:w-60'>
+              <Select
+                value={selectedData}
+                onChange={(selectedData: any) => setSelectedData(selectedData)}
+                options={selectData}
+                isMulti
+                menuPlacement='top'
+                styles={customStyles}
+              />
+            </div>
+            <div className='w-full w-1/2 ml-2 sm:w-60 sm:ml-4'>
+              <Select
+                value={selectedCategory}
+                onChange={(selectedCategory: any) => {setSelectedCategory(selectedCategory); }}
+                options={selectCategories}
+                menuPlacement='top'
+                styles={customStyles}
+              />
+            </div>
+          </div>
+          {!!prompts && prompts.length > 0 && (
+            <div className='pt-3'>
+              {prompts && prompts.map((prompt: any, index: number) => (
+                <button key={index}
+                  className='px-3 py-1 mr-2 bg-gray-700/50 font-md text-gray-300 rounded-2xl hover:opacity-80'
+                  onClick={() => submitPrompt(prompt.prompt)}
+                >
+                  {prompt.prompt}
+                </button>
+              ))}
+            </div>
           )}
-        </button>
-      </form>
+        </div>
+        <form
+          onSubmit={handleSubmit}
+          className="items-center w-full justify-center flex py-3 sm:pb-4"
+        >
+          <label htmlFor="userInput" className="sr-only">
+            Your message
+          </label>
+          <div className="flex w-full align-center justify-center items-center rounded-lg bg-gray-170 shadow-2xl">
+            <textarea
+              disabled={loading}
+              onKeyDown={handleEnter}
+              ref={otherRef}
+              className="flex items-center justify-center w-full text-xs sm:text-sm md:text-base rounded-lg border bg-gray-900 border-gray-700 placeholder-gray-400 text-white focus:outline-none resize-none whitespace-pre-wrap overflow-y-auto"
+              autoFocus={false}
+              rows={1}
+              maxLength={2048}
+              id="userInput"
+              name="userInput"
+              placeholder={
+                loading
+                  ? 'Waiting for response...'
+                  : error
+                    ? 'Error occurred. Try again.'
+                    : 'Your message...'
+              }
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </div>
+          <button
+            ref={submitRef}
+            type="submit"
+            disabled={loading}
+            className="inline-flex justify-center p-2 rounded-full cursor-pointer text-blue-500 hover:text-blue-300"
+          >
+            {loading ? (
+              <></>
+            ) : error ? (
+              <ExclamationCircleIcon className="h-6 w-6 text-red-500" />
+            ) : (
+              <PaperAirplaneIcon className="h-6 w-6" />
+            )}
+          </button>
+        </form>
+      </div>
     </div>
   );
 };
