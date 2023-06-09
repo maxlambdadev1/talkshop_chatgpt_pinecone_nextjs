@@ -71,7 +71,7 @@ const ChatForm = ({
       categories.forEach((item1: any) => { if (value === item1.dataName) arr.push(item1); });
     })
     setSelectCategories(arr.map((item: any) => ({ value: item.categoryName, label: item.categoryName })))
-  }, [selectedData]);
+  }, [selectedData, categories]);
 
 
   const getPrompts = async (dataName: string, categoryName: string) => {
@@ -108,7 +108,7 @@ const ChatForm = ({
       })
       if (!!dataName && !!categoryName) getPrompts(dataName, categoryName);
     }
-  }, [selectedCategory]);
+  }, [selectedCategory, categories]);
 
 
   useEffect(() => {
