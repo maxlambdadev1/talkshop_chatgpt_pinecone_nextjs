@@ -27,8 +27,7 @@ export default function useNamespaces() {
               const url = new URL(location.href);
               const pathname = url.pathname; 
               const id = pathname.split('/namespace/').pop(); 
-              console.log('id', id);
-              if (!id) setSelectedNamespace(data[0]);
+              if (pathname.indexOf('/namespace/') < 0) setSelectedNamespace(data[0]);
             }
           }
         } else {
@@ -51,13 +50,6 @@ export default function useNamespaces() {
 
   useEffect(() => {
     if (namespaces.length > 0 && !!selectedNamespace.realName) {
-      console.log(
-        'ddddddddd',
-        selectedNamespace,
-        namespaces.find(
-          (item: any) => item.realName === selectedNamespace.realName,
-        ),
-      );
       setSelectedNamespace((selectedNamespace: any) =>
         namespaces.find(
           (item: any) => item.realName === selectedNamespace.realName,
