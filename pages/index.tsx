@@ -19,7 +19,7 @@ import ChatForm from '@/components/main/ChatForm';
 import SidebarList from '@/components/sidebar/SidebarList';
 import EmptyState from '@/components/main/EmptyState';
 import Header from '@/components/header/Header';
-import useApiKeys from '@/hooks/useKeys';
+import { useLocalStorage } from '@/libs/localStorage';
 
 export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
@@ -27,6 +27,8 @@ export default function Home() {
   const router = useRouter();
   const [query, setQuery] = useState<string>('');
   const [modelTemperature, setModelTemperature] = useState<number>(0.5);
+
+  const [userInfo, setUserInfo] = useLocalStorage<any>('userInfo', {});
 
   const { data: session, status } = useSession({
     required: true,
@@ -38,20 +40,18 @@ export default function Home() {
   const [userEmail, setUserEmail] = useState<string>('');
   const [userName, setUserName] = useState<string>('');
   const [userImage, setUserImage] = useState<string>('');
+  const [userRole, setUserRole] = useState<string>('user');
 
-  const {
-    openAIapiKey,
-    pineconeApiKey,
-    pineconeEnvironment,
-    pineconeIndexName,
-  } = useApiKeys();
+  useEffect(() => {
+    if (!!userInfo && !!userInfo.role ) setUserRole(userInfo.role);
+  }, [userInfo])
 
   const {
     namespaces,
     selectedNamespace,
     setSelectedNamespace,
     isLoadingNamespaces,
-  } = useNamespaces(pineconeApiKey, pineconeIndexName, pineconeEnvironment);
+  } = useNamespaces();
 
   const {
     chatList,
@@ -63,7 +63,7 @@ export default function Home() {
     updateChatName,
     filteredChatList,
     getConversation,
-  } = useChats(selectedNamespace, userEmail);
+  } = useChats(selectedNamespace.realName, userEmail);
 
   const userHasNamespaces = namespaces.length > 0;
 
@@ -149,9 +149,27 @@ export default function Home() {
     }
   }, [selectedChatId]);
 
+  const getUserInfo = async () => {
+    try {
+      const response = await fetch(`/api/user`);      
+      const data = await response.json();
+      if (response.ok) {
+        return data;
+      } else {
+        console.log('error', data.error);
+        return {};
+      }
+    } catch(err) {
+      console.log('err', err);
+      return {};
+    }
+  }
   useEffect(() => {
     if (status === 'authenticated' && session?.user?.email) {
       setUserEmail(session.user.email);
+      getUserInfo().then((user:any) => {
+        setUserInfo(user);
+      })
       if (session?.user?.name) {
         setUserName(session.user.name);
       }
@@ -162,7 +180,7 @@ export default function Home() {
   }, [status, session]);
 
   useEffect(() => {
-    if (selectedNamespace && chatList.length > 0 && !selectedChatId) {
+    if (!!selectedNamespace.realName && chatList.length > 0 && !selectedChatId) {
       setSelectedChatId(chatList[0].chatId);
     }
   }, [
@@ -170,10 +188,6 @@ export default function Home() {
     chatList,
     selectedChatId,
     setSelectedChatId,
-    openAIapiKey,
-    pineconeApiKey,
-    pineconeEnvironment,
-    pineconeIndexName,
   ]);
 
   useEffect(() => {
@@ -184,10 +198,6 @@ export default function Home() {
     selectedNamespace,
     setSelectedChatId,
     chatList,
-    openAIapiKey,
-    pineconeApiKey,
-    pineconeEnvironment,
-    pineconeIndexName,
   ]);
 
   useEffect(() => {
@@ -198,10 +208,6 @@ export default function Home() {
   }, [
     selectedChatId,
     fetchChatHistory,
-    openAIapiKey,
-    pineconeApiKey,
-    pineconeEnvironment,
-    pineconeIndexName,
   ]);
 
   useEffect(() => {
@@ -232,30 +238,17 @@ export default function Home() {
     setLoading(true);
     setQuery('');
 
-    if (
-      !openAIapiKey ||
-      !pineconeApiKey ||
-      !pineconeEnvironment ||
-      !pineconeIndexName
-    ) {
-      console.error('API keys not found.');
-      return;
-    }
     console.log('history', history);
     const response = await fetch('/api/message/create', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'X-OpenAI-Key': openAIapiKey,
-        'X-Pinecone-Key': pineconeApiKey,
-        'X-Pinecone-Environment': pineconeEnvironment,
-        'X-Pinecone-Index-Name': pineconeIndexName,
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         question,
         history: conversation.history,
         chatId: selectedChatId,
-        selectedNamespace,
+        selectedNamespace : selectedNamespace.realName,
         returnSourceDocuments,
         modelTemperature,
         userEmail,
@@ -431,10 +424,11 @@ export default function Home() {
             sidebarOpen={sidebarOpen}
             userImage={userImage}
             userName={userName}
+            userRole={userRole}
           />
 
           <main className="flex flex-col">
-            {selectedNamespace !== '' && nameSpaceHasChats ? (
+            {!!selectedNamespace?.realName && nameSpaceHasChats ? (
               <div className="flex-grow pb-48">
                 <div className="h-full">
                   <MessageList
@@ -448,10 +442,11 @@ export default function Home() {
                 nameSpaceHasChats={nameSpaceHasChats}
                 selectedNamespace={selectedNamespace}
                 userHasNamespaces={userHasNamespaces}
+                userRole={ userRole}
               />
             )}
 
-            {nameSpaceHasChats && selectedNamespace && (
+            {nameSpaceHasChats && !!selectedNamespace?.realName && (
               <div className="fixed w-full bottom-0 flex bg-gradient-to-t from-gray-800 to-gray-800/0 justify-center lg:pr-72">
                 <ChatForm
                   loading={loading}

@@ -3,6 +3,7 @@ import mongoose, { Document } from 'mongoose';
 export interface INamespace extends Document {
   userEmail: string;
   name: string;
+  realName : string;
 }
 
 const namespaceSchema = new mongoose.Schema({
@@ -11,6 +12,10 @@ const namespaceSchema = new mongoose.Schema({
     required: true,
   },
   name: {
+    type: String,
+    required: true,
+  },
+  realName: {
     type: String,
     required: true,
   },

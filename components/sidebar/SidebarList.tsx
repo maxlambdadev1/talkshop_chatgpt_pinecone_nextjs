@@ -8,7 +8,7 @@ import ModelTemperature from './ModelTemperature';
 
 interface SidebarListProps {
   createChat: (title : string) => Promise<string>;
-  selectedNamespace: string;
+  selectedNamespace: any;
   returnSourceDocuments: boolean;
   setReturnSourceDocuments: React.Dispatch<React.SetStateAction<boolean>>;
   modelTemperature: number;
@@ -21,8 +21,8 @@ interface SidebarListProps {
   chatNames: Record<string, string>;
   updateChatName: (chatId: string, newName: string) => void;
   deleteChat: (chatId: string) => void;
-  namespaces: string[];
-  setSelectedNamespace: React.Dispatch<React.SetStateAction<string>>;
+  namespaces: any[];
+  setSelectedNamespace: React.Dispatch<React.SetStateAction<any>>;
   isLoadingNamespaces: boolean;
 }
 
@@ -48,7 +48,7 @@ const SidebarList: React.FC<SidebarListProps> = ({
   return (
     <nav className="flex flex-col h-full">
       <div>
-        {selectedNamespace && (
+        {!!selectedNamespace?.realName && (
           <div className="px-4 space-y-3 mb-4">
             <SourceDocumentsToggle
               checked={returnSourceDocuments}
@@ -76,7 +76,7 @@ const SidebarList: React.FC<SidebarListProps> = ({
           />
         </div>
 
-        {selectedNamespace && (
+        {!!selectedNamespace?.realName && (
           <div className="px-4 space-y-3 mb-4">           
             <Button
               buttonType="primary"
@@ -104,7 +104,7 @@ const SidebarList: React.FC<SidebarListProps> = ({
           Your chats
         </div>
         <div className="px-4 flex-grow overflow-y-auto">
-          {selectedNamespace && nameSpaceHasChats ? (
+          {!!selectedNamespace?.realName && nameSpaceHasChats ? (
             <ListOfChats
               filteredChatList={filteredChatList}
               selectedChatId={selectedChatId}
@@ -115,7 +115,7 @@ const SidebarList: React.FC<SidebarListProps> = ({
             />
           ) : (
             <div className="text-xs font-semibold leading-6 text-red-400">
-              {selectedNamespace
+              {!!selectedNamespace?.realName
                 ? 'No chats in this namespace'
                 : 'Select a namespace to display chats'}
             </div>

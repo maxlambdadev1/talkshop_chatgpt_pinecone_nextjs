@@ -3,7 +3,6 @@ import { useRouter } from 'next/router';
 import { useDropzone } from 'react-dropzone';
 import ChunkSizeModal from '@/components/other/ChunkSizeModal';
 import { setItem } from '@/libs/localStorageKeys';
-import useApiKeys from '@/hooks/useKeys';
 import OverlapSizeModal from '@/components/other/OverlapSizeModal';
 import {
   ArrowRightIcon,
@@ -13,20 +12,11 @@ import {
   XMarkIcon,
 } from '@heroicons/react/20/solid';
 import Pattern from './components/Pattern';
-import KeyForm from '@/components/keyform/KeyForm';
+import { useLocalStorage } from '@/libs/localStorage';
+import { useSession } from 'next-auth/react';
 
-export default function Settings() {
+export default function Create() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const {
-    openAIapiKey,
-    setOpenAIapiKey,
-    pineconeApiKey,
-    setPineconeApiKey,
-    pineconeEnvironment,
-    setPineconeEnvironment,
-    pineconeIndexName,
-    setPineconeIndexName,
-  } = useApiKeys();
 
   const [namespaceName, setNamespaceName] = useState<string>('');
   const [deleteMessage, setDeleteMessage] = useState<string>('');
@@ -39,24 +29,30 @@ export default function Settings() {
       customString: '',
     },
   );
-  const [namespaces, setNamespaces] = useState<string[]>([]);
+  const [namespaces, setNamespaces] = useState<any[]>([]);
   const [chunkSize, setChunkSize] = useState<number>(1200);
   const [overlapSize, setOverlapSize] = useState<number>(20);
-  const [selectedNamespace, setSelectedNamespace] = useState<string>('');
+  const [selectedNamespace, setSelectedNamespace] = useState<any>('');
   const [showChunkSizeModal, setShowChunkSizeModal] = useState<boolean>(false);
   const [showOverlapSizeModal, setShowOverlapSizeModal] =
     useState<boolean>(false);
   const router = useRouter();
+  const [userInfo, setUserInfo] = useLocalStorage<any>('userInfo', {});
+
+  const { data: session, status } = useSession({
+    required: true,
+    onUnauthenticated: () => router.push('/login'),
+  });
+
+  useEffect(() => {
+    if(!!userInfo) {
+      if (userInfo.role !== 'admin') router.push('/');
+    }
+  }, [userInfo, router])
 
   const fetchNamespaces = useCallback(async () => {
     try {
-      const response = await fetch(`/api/getNamespaces`, {
-        headers: {
-          'X-Api-Key': pineconeApiKey,
-          'X-Index-Name': pineconeIndexName,
-          'X-Environment': pineconeEnvironment,
-        },
-      });
+      const response = await fetch(`/api/getNamespaces`);
       const data = await response.json();
 
       if (response.ok) {
@@ -74,38 +70,18 @@ export default function Settings() {
         customString: 'An error occured while fetching namespaces',
       });
     }
-  }, [pineconeApiKey, pineconeIndexName, pineconeEnvironment]);
+  }, []);
 
   useEffect(() => {
-    if (pineconeApiKey) {
       fetchNamespaces();
-    }
-  }, [fetchNamespaces, pineconeApiKey]);
-
-  const handleSubmit = (storageKey: string, key: string) => {
-    setItem(storageKey, key);
-    if (storageKey === 'openAIapiKey') {
-      setOpenAIapiKey(key);
-    } else if (storageKey === 'pineconeApiKey') {
-      setPineconeApiKey(key);
-    } else if (storageKey === 'pineconeEnvironment') {
-      setPineconeEnvironment(key);
-    } else if (storageKey === 'pineconeIndexName') {
-      setPineconeIndexName(key);
-    }
-  };
+  }, [fetchNamespaces]);
 
   const handleDelete = async (namespace: string) => {
     try {
       const response = await fetch(
         `/api/deleteNamespace?namespace=${namespace}`,
         {
-          method: 'DELETE',
-          headers: {
-            'X-Api-Key': pineconeApiKey,
-            'X-Index-Name': pineconeIndexName,
-            'X-Environment': pineconeEnvironment,
-          },
+          method: 'DELETE'
         },
       );
 
@@ -172,23 +148,13 @@ export default function Settings() {
       const response = await fetch(
         `/api/consume?namespaceName=${namespaceName}&chunkSize=${chunkSize}&overlapSize=${overlapSize}`,
         {
-          method: 'POST',
-          headers: {
-            'X-OpenAI-Key': openAIapiKey,
-            'X-Pinecone-Key': pineconeApiKey,
-            'X-Index-Name': pineconeIndexName,
-            'X-Environment': pineconeEnvironment,
-          },
+          method: 'POST'
         },
       );
 
       if (response.ok) {
         const data = await response.json();
-        setMessage(data.message);
-
-        setTimeout(() => {
-          // setMessage('');
-        }, 1000);
+        setMessage('Data ingestion complete');
         fetchNamespaces();
       } else {
         const errorData = await response.json();
@@ -204,16 +170,13 @@ export default function Settings() {
     setLoading(false);
   };
 
-  const arePineConeKeysSet =
-    pineconeApiKey && pineconeEnvironment && pineconeIndexName;
-
   return (
     <div className="relative isolate min-h-screen bg-gray-900">
       <div className="mx-auto grid max-w-7xl grid-cols-1 lg:grid-cols-2">
-        <div className="relative px-6 pb-20 pt-24 sm:pt-32 lg:static lg:px-8 lg:py-48">
+        <div className="relative px-6 pb-12 pt-12 sm:pt-32 lg:static lg:px-8 lg:py-20 sm:flex sm:flex-col sm:justify-center">
           <div className="mx-auto max-w-xl lg:mx-0 lg:max-w-lg">
             <Pattern />
-            {error && arePineConeKeysSet && (
+            {!!error && !!error.customString && (
               <div className="mt-4 sm:mt-8 flex justify-center mb-4">
                 <div className="text-red-500 text-sm sm:text-base font-semibold">
                   {error.customString}
@@ -221,36 +184,6 @@ export default function Settings() {
               </div>
             )}
             <div className="max-w-xl mx-auto">
-              <div className="gap-4 grid grid-cols1 sm:grid-cols-2 mb-6">
-                <KeyForm
-                  keyName="OpenAI API Key"
-                  keyValue={openAIapiKey}
-                  setKeyValue={(key: string) =>
-                    handleSubmit('openAIapiKey', key)
-                  }
-                />
-                <KeyForm
-                  keyName="Pinecone API Key"
-                  keyValue={pineconeApiKey}
-                  setKeyValue={(key: string) =>
-                    handleSubmit('pineconeApiKey', key)
-                  }
-                />
-                <KeyForm
-                  keyName="Pinecone environment"
-                  keyValue={pineconeEnvironment}
-                  setKeyValue={(key: string) =>
-                    handleSubmit('pineconeEnvironment', key)
-                  }
-                />
-                <KeyForm
-                  keyName="Pinecone index name"
-                  keyValue={pineconeIndexName}
-                  setKeyValue={(key: string) =>
-                    handleSubmit('pineconeIndexName', key)
-                  }
-                />
-              </div>
 
               <div className="flex justify-between items-center space-x-2 align-center mb-2">
                 {namespaces.length > 0 ? (
@@ -279,26 +212,26 @@ export default function Settings() {
               <ul role="list" className="grid grid-cols-2 gap-4">
                 {namespaces.map((namespace) => (
                   <li
-                    key={namespace}
+                    key={namespace.realName}
                     className="bg-gray-800/60 rounded-lg shadow px-5 py-4 flex items-center justify-between space-x-4"
                   >
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-white truncate">
-                        {namespace}
+                        {namespace.name}
                       </p>
                     </div>
                     <div className="flex-shrink-0 flex items-center space-x-2">
-                      {selectedNamespace === namespace ? (
+                      {selectedNamespace.realName === namespace.realName ? (
                         <div className="flex items-center space-x-2">
                           <CheckIcon
                             className="h-5 w-5 text-green-400 hover:text-green-500 cursor-pointer"
                             aria-hidden="true"
-                            onClick={() => handleDelete(selectedNamespace)}
+                            onClick={() => handleDelete(selectedNamespace.realName)}
                           />
                           <XMarkIcon
                             className="h-5 w-5 text-gray-400 hover:text-gray-300 cursor-pointer"
                             aria-hidden="true"
-                            onClick={() => setSelectedNamespace('')}
+                            onClick={() => setSelectedNamespace({})}
                           />
                         </div>
                       ) : (
@@ -324,7 +257,7 @@ export default function Settings() {
           </div>
         </div>
         {/* ------------------------------- */}
-        <div className="px-6 pb-24 pt-20 sm:pb-32 lg:px-8 lg:py-48">
+        <div className="px-6 pb-24 pt-12 sm:pb-32 lg:px-8 lg:py-20">
           <div className="mx-auto max-w-xl lg:mr-0 lg:max-w-lg ">
             {/* upload area */}
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">

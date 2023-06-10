@@ -21,10 +21,10 @@ export default async function handler(
     userEmail,
   } = req.body;
 
-  const openAIapiKey = req.headers['x-openai-key'];
-  const pineconeApiKey = req.headers['x-pinecone-key'];
-  const pineconeEnvironment = req.headers['x-pinecone-environment'];
-  const targetIndex = req.headers['x-pinecone-index-name'] as string;
+  const openAIapiKey = process.env.OPENAI_API_KEY;
+  const pineconeApiKey = process.env.PINECONE_API_KEY;
+  const pineconeEnvironment = process.env.PINECONE_ENVIRONMENT;
+  const targetIndex = process.env.PINECONE_INDEX_NAME as string;
 
   const pinecone = await initPinecone(
     pineconeApiKey as string,

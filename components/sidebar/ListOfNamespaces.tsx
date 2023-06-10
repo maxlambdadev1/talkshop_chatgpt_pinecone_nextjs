@@ -15,12 +15,12 @@ const ListOfNamespaces = ({
   setSelectedNamespace,
   isLoadingNamespaces,
 }: {
-  namespaces: string[];
-  selectedNamespace: string;
-  setSelectedNamespace: (namespace: string) => void;
+  namespaces: any[];
+  selectedNamespace: any;
+  setSelectedNamespace: (namespace: any) => void;
   isLoadingNamespaces: boolean;
 }) => {
-  const handleNamespaceClick = (namespace: string) => {
+  const handleNamespaceClick = (namespace: any) => {
     setSelectedNamespace(namespace);
   };
 
@@ -41,7 +41,7 @@ const ListOfNamespaces = ({
                 <span>No namespaces found</span>
               ) : (
                 <>
-                  {selectedNamespace}
+                  {selectedNamespace.name}
                   <ChevronDownIcon
                     className="-mr-1 h-5 w-5 text-gray-400"
                     aria-hidden="true"
@@ -64,20 +64,20 @@ const ListOfNamespaces = ({
       >
         <Menu.Items className="absolute right-0 z-10 mt-2 w-full origin-top-right divide-y divide-gray-700 rounded-md bg-gray-800 shadow-lg ring-1 ring-gray-800 ring-opacity-5 focus:outline-none">
           {namespaces.map((namespace) => (
-            <div className="py-1" key={namespace}>
+            <div className="py-1" key={namespace.realName}>
               <Menu.Item>
                 {() => (
                   <Link
-                    href={`/namespace/${namespace}`}
+                    href={`/namespace/${namespace.realName}`}
                     className={classNames(
-                      namespace === selectedNamespace
+                      namespace.realName === selectedNamespace.realName
                         ? 'bg-gray-700 text-white'
                         : 'text-gray-400 hover:text-white hover:bg-gray-700',
                       'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold',
                     )}
                     onClick={() => handleNamespaceClick(namespace)}
                   >
-                    {namespace}
+                    {namespace.name}
                   </Link>
                 )}
               </Menu.Item>

@@ -11,6 +11,7 @@ import { initPinecone } from '@/utils/pinecone-client';
 import Namespace from '@/models/Namespace';
 import connectDB from '@/utils/mongoConnection';
 import { getSession } from 'next-auth/react';
+import { v4 as uuidv4 } from 'uuid';
 
 const filePath = process.env.NODE_ENV === 'production' ? '/tmp' : 'tmp';
 
@@ -25,30 +26,20 @@ export default async function handler(
   const userEmail = session?.user?.email;
   const { namespaceName, chunkSize, overlapSize } = req.query;
 
-  const openAIapiKey = req.headers['x-openai-key'];
-  const pineconeApiKey = req.headers['x-pinecone-key'];
-  const targetIndex = req.headers['x-index-name'] as string;
-  const pineconeEnvironment = req.headers['x-environment'];
+  const openAIapiKey = process.env.OPENAI_API_KEY;
+  const pineconeApiKey = process.env.PINECONE_API_KEY;
+  const targetIndex = process.env.PINECONE_INDEX_NAME as string;
+  const pineconeEnvironment = process.env.PINECONE_ENVIRONMENT;
 
   await connectDB();
   const existingNamespace = await Namespace.findOne({
     name: namespaceName as string,
+    userEmail : userEmail as string
   });
 
-  if (!existingNamespace) {
-    const newNamespace = new Namespace({
-      userEmail: userEmail as string,
-      name: namespaceName as string,
-    });
-    await newNamespace.save();
-  } else {
-    const filesToDelete = fs
-      .readdirSync(filePath)
-    filesToDelete.forEach((file) => {
-      fs.unlinkSync(`${filePath}/${file}`);
-    });
+  if (!!existingNamespace) {
     return res.status(400).json({ message : 'There is a same namespace.'})
-  }
+  } 
 
   const pinecone = await initPinecone(
     pineconeApiKey as string,
@@ -86,9 +77,10 @@ export default async function handler(
     const index = pinecone.Index(targetIndex);
 
     // Store the document chunks in Pinecone with their embeddings
+    const namespaceRealName = uuidv4();        
     await PineconeStore.fromDocuments(docs, embeddings, {
       pineconeIndex: index,
-      namespace: namespaceName as string,
+      namespace: namespaceRealName as string,
       textKey: 'text',
     });
 
@@ -104,6 +96,13 @@ export default async function handler(
     filesToDelete.forEach((file) => {
       fs.unlinkSync(`${filePath}/${file}`);
     });
+
+    const newNamespace = new Namespace({
+      userEmail: userEmail as string,
+      name: namespaceName as string,
+      realName : namespaceRealName as string
+    });
+    await newNamespace.save();
 
     res.status(200).json({ message: 'Data ingestion complete' });
   } catch (error) {

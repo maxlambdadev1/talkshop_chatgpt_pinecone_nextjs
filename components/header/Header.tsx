@@ -7,12 +7,13 @@ import { signOut } from 'next-auth/react';
 
 interface HeaderProps {
   setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  sidebarOpen : boolean;
+  sidebarOpen: boolean;
   userImage: string;
   userName: string;
+  userRole: string;
 }
 
-const Header: React.FC<HeaderProps> = ({ setSidebarOpen, sidebarOpen, userImage, userName, }) => {
+const Header: React.FC<HeaderProps> = ({ setSidebarOpen, sidebarOpen, userImage, userName, userRole }) => {
   const defaultUserImage = '/images/user.png';
   const defaultUserName = 'User';
 
@@ -22,7 +23,7 @@ const Header: React.FC<HeaderProps> = ({ setSidebarOpen, sidebarOpen, userImage,
       <button
         type="button"
         className="-m-2.5 p-2.5 text-gray-700 lg:hidden"
-        onClick={() => {console.log('sidebarOpen', sidebarOpen); setSidebarOpen(!sidebarOpen) }}
+        onClick={() => { console.log('sidebarOpen', sidebarOpen); setSidebarOpen(!sidebarOpen) }}
       >
         <span className="sr-only">Open sidebar</span>
         <Bars3Icon className="h-6 w-6" aria-hidden="true" />
@@ -33,19 +34,20 @@ const Header: React.FC<HeaderProps> = ({ setSidebarOpen, sidebarOpen, userImage,
           Talk Shop
         </span>
       </div>
-
-      <div className="flex-shrink-0" onClick={() => router.push('/settings')}>
-        <button
-          type="button"
-          className="inline-flex items-center gap-x-1.5 rounded-md bg-indigo-600 px-2.5 py-1.5 text-xs sm:text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-        >
-          <Cog6ToothIcon
-            className="-ml-0.5 h-4 w-4 sm:w-5 sm:h-5"
-            aria-hidden="true"
-          />
-          <span>Settings</span>
-        </button>
-      </div>
+      { userRole === 'admin' && (
+        <div className="flex-shrink-0" onClick={() => router.push('/namespace/create')}>
+          <button
+            type="button"
+            className="inline-flex items-center gap-x-1.5 rounded-md bg-indigo-600 px-2.5 py-1.5 text-xs sm:text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+          >
+            <Cog6ToothIcon
+              className="-ml-0.5 h-4 w-4 sm:w-5 sm:h-5"
+              aria-hidden="true"
+            />
+            <span>Create</span>
+          </button>
+        </div>
+      )}
 
       <div className="flex items-center gap-x-4 lg:gap-x-6">
         <div

@@ -21,9 +21,9 @@ export default async function handler(
     namespace: string;
   };
 
-  const pineconeApiKey = req.headers['x-api-key'];
-  const targetIndex = req.headers['x-index-name'] as string;
-  const pineconeEnvironment = req.headers['x-environment'];
+  const pineconeApiKey = process.env.PINECONE_API_KEY;
+  const targetIndex = process.env.PINECONE_INDEX_NAME as string;
+  const pineconeEnvironment = process.env.PINECONE_ENVIRONMENT;
 
   const pinecone = await initPinecone(
     pineconeApiKey as string,
@@ -33,7 +33,7 @@ export default async function handler(
   try {
     await connectDB();
     const existingNamespace = await Namespace.findOne({
-      name: namespace as string,
+      realName: namespace as string,
       userEmail: userEmail as string,
     });
     if (!existingNamespace) {
