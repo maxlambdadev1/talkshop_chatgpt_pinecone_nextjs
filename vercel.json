@@ -1,9 +1,7 @@
 {
     "functions": {
-        "api/*": {
-            "payload": {
-              "max": "50mb"
-            }
+        "payload": {
+            "max": "50mb"
         }
     }
 }
