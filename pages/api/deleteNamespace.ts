@@ -53,7 +53,7 @@ export default async function handler(
     });
 
     const ChatModelTyped = ChatModel as mongoose.Model<IChat>;
-    await Namespace.deleteOne({ name: namespace, userEmail });
+    await Namespace.deleteOne({ realName: namespace, userEmail });
     await ChatModelTyped.deleteMany({  namespace, userEmail });
     await Message.deleteMany({ namespace, userEmail });
 

@@ -76,10 +76,10 @@ export default function Create() {
       fetchNamespaces();
   }, [fetchNamespaces]);
 
-  const handleDelete = async (namespace: string) => {
+  const handleDelete = async (namespace: any) => {
     try {
       const response = await fetch(
-        `/api/deleteNamespace?namespace=${namespace}`,
+        `/api/deleteNamespace?namespace=${namespace.realName}`,
         {
           method: 'DELETE'
         },
@@ -87,10 +87,10 @@ export default function Create() {
 
       if (response.ok) {
         const updatedNamespaces = namespaces.filter(
-          (item) => item !== namespace,
+          (item) => item.realName !== namespace.realName,
         );
         setNamespaces(updatedNamespaces);
-        setDeleteMessage(`${namespace} has been successfully deleted.`);
+        setDeleteMessage(`${namespace.name} has been successfully deleted.`);
       } else {
         const data = await response.json();
         console.log(data.error);
@@ -118,7 +118,8 @@ export default function Create() {
 
     const formData = new FormData();
     for (let i = 0; i < selectedFiles.length; i++) {
-      formData.append(`myfile${i}`, selectedFiles[i]);
+      // formData.append(`file${i}`, selectedFiles[i]);
+      formData.append(`files`, selectedFiles[i]);
     }
 
     try {
@@ -226,7 +227,7 @@ export default function Create() {
                           <CheckIcon
                             className="h-5 w-5 text-green-400 hover:text-green-500 cursor-pointer"
                             aria-hidden="true"
-                            onClick={() => handleDelete(selectedNamespace.realName)}
+                            onClick={() => handleDelete(selectedNamespace)}
                           />
                           <XMarkIcon
                             className="h-5 w-5 text-gray-400 hover:text-gray-300 cursor-pointer"
