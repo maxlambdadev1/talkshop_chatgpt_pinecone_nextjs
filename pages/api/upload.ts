@@ -4,9 +4,10 @@ import path from 'path';
 import fs from 'fs-extra';
 import multer from 'multer';
 
+const filePath = process.env.NODE_ENV === 'production' ? '/tmp' : 'tmp';
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'tmp');
+    cb(null, filePath);
   },
   filename: function (req, file, cb) {
     cb(null, (file.originalname));
