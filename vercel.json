@@ -1,0 +1,7 @@
+{
+    "functions": {
+      "payload": {
+        "max": "20mb"
+      }
+    }
+  }
