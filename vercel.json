@@ -1,5 +1,7 @@
 {
     "functions": {
-        "payload": "20mb"
+      "payload": {
+        "limit": "20mb"
+      }
     }
-}
+  }
