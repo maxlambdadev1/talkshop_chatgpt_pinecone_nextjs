@@ -187,7 +187,8 @@ export default function Create() {
 
       if (response.ok) {
         const data = await response.json();
-        setMessage('Data ingestion complete');
+        // setMessage('Data ingestion complete');
+        setMessage('Ingest');
         fetchNamespaces();
         setIngestError('');
         setUploadedFiles([]);

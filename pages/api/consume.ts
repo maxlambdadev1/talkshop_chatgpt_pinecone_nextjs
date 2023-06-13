@@ -110,7 +110,7 @@ export default async function handler(
     });
     await newNamespace.save();
 
-    res.status(200).json({ message: 'success' });
+    res.status(200).json({ message: docs });
   } catch (error) {
     console.log('error', error);
     res.status(500).json({ error: 'Failed to ingest your data' });
