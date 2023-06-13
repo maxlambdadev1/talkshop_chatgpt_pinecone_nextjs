@@ -14,6 +14,9 @@ import { getSession } from 'next-auth/react';
 import { v4 as uuidv4 } from 'uuid';
 
 const filePath = process.env.NODE_ENV === 'production' ? '/tmp' : 'tmp';
+interface SaveObjectsResult {
+  ids: string[];
+}
 
 export default async function handler(
   req: NextApiRequest,
@@ -25,6 +28,18 @@ export default async function handler(
   }
   const userEmail = session?.user?.email;
   const { namespaceName, chunkSize, overlapSize } = req.query;
+
+  const filesToDelete = fs
+  .readdirSync(filePath)
+  .filter(
+    (file) =>
+      file.endsWith('.pdf') ||
+      file.endsWith('.docx') ||
+      file.endsWith('.txt'),
+  );
+  if (filesToDelete.length <= 0) {
+    return res.status(400).json({message : 'There are no any files for embedding to pinecone.'})
+  }
 
   const openAIapiKey = process.env.OPENAI_API_KEY;
   const pineconeApiKey = process.env.PINECONE_API_KEY;
@@ -78,21 +93,15 @@ export default async function handler(
 
     // Store the document chunks in Pinecone with their embeddings
     const namespaceRealName = uuidv4();        
-    await PineconeStore.fromDocuments(docs, embeddings, {
+    const saveRes = await PineconeStore.fromDocuments(docs, embeddings, {
       pineconeIndex: index,
       namespace: namespaceRealName as string,
       textKey: 'text',
     });
 
+    const ids: string[] = (saveRes as SaveObjectsResult).getIds();
+
     // Delete the PDF, DOCX and TXT files
-    const filesToDelete = fs
-      .readdirSync(filePath)
-      .filter(
-        (file) =>
-          file.endsWith('.pdf') ||
-          file.endsWith('.docx') ||
-          file.endsWith('.txt'),
-      );
     filesToDelete.forEach((file) => {
       fs.unlinkSync(`${filePath}/${file}`);
     });
@@ -104,7 +113,7 @@ export default async function handler(
     });
     await newNamespace.save();
 
-    res.status(200).json({ message: 'Data ingestion complete' });
+    res.status(200).json({ message: saveRes });
   } catch (error) {
     console.log('error', error);
     res.status(500).json({ error: 'Failed to ingest your data' });

@@ -6,7 +6,7 @@ import { setItem } from '@/libs/localStorageKeys';
 import OverlapSizeModal from '@/components/other/OverlapSizeModal';
 import {
   ArrowRightIcon,
-  PencilIcon,
+  PlusCircleIcon,
   CheckIcon,
   QuestionMarkCircleIcon,
   TrashIcon,
@@ -15,10 +15,11 @@ import {
 import Pattern from './components/Pattern';
 import { useLocalStorage } from '@/libs/localStorage';
 import { useSession } from 'next-auth/react';
+import SelectNamespace from '@/components/other/SelectNamespace';
 
 const MAX_FILE_SIZE = 4.5 * 1024 * 1024; // 4.5MB in bytes
 
-export default function Create() {
+export default function Update() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
 
@@ -98,7 +99,6 @@ export default function Create() {
         );
         setNamespaces(updatedNamespaces);
         setDeleteMessage(`${namespace.name} has been successfully deleted.`);
-        setTimeout(() => setDeleteMessage(''), 3000);
       } else {
         const data = await response.json();
         console.log(data.error);
@@ -176,7 +176,6 @@ export default function Create() {
   const handleIngest = async () => {
     try {
       setLoading(true);
-      setIngestError('');
 
       const response = await fetch(
         `/api/consume?namespaceName=${namespaceName}&chunkSize=${chunkSize}&overlapSize=${overlapSize}`,
@@ -219,27 +218,35 @@ export default function Create() {
             )}
             <div className="max-w-xl mx-auto">
 
-              <div className="flex justify-between items-center space-x-2 align-center mb-2">
-                {namespaces.length > 0 ? (
-                  <h2 className="mb-4 text-xl text-center sm:text-3xl sm:text-left font-bold text-white">
-                    Your namespaces
-                  </h2>
-                ) : (
-                  <span className="inline-flex items-center rounded-md bg-red-400/10 px-2 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-red-400 ring-1 ring-inset ring-red-400/20">
-                    No namespaces found
-                  </span>
-                )}
+              <div className="flex justify-between items-start  space-x-2  mb-2">
+                <div className=''>
+                  {namespaces.length > 0 ? (
+                    <h2 className="mb-4 text-xl text-start sm:text-3xl sm:text-left font-bold text-white">
+                      Your namespaces
+                    </h2>
+                  ) : (
+                    <span className="inline-flex items-center rounded-md bg-red-400/10 px-2 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-red-400 ring-1 ring-inset ring-red-400/20">
+                      No namespaces found
+                    </span>
+                  )}
+                  {namespaces && (
+                    <SelectNamespace
+                      namespaces={namespaces}
+                      selectedNamespace={selectedNamespace}
+                      setSelectedNamespace={setSelectedNamespace}
+                      isLoadingNamespaces={namespaces.length <= 0}
+                    />
+                  )}
+                </div>
                 <div className='grid grid-cols-1 sm:grid-cols-2 gap-2 '>
-                  {namespaces && namespaces.length > 0 ? (
-                    <button
-                      type="button"
-                      className="rounded-md items-center align-center justify-between flex bg-blue-600 hover:bg-blue-500  px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-white shadow-sm ring-1 ring-inset ring-gray-300"
-                      onClick={() => router.push('/namespace/update')}
-                    >
-                      Update
-                      <PencilIcon className="ml-2 -mr-0.5 h-4 w-4" />
-                    </button>
-                  ) : <div></div>}
+                  <button
+                    type="button"
+                    className="rounded-md items-center align-center justify-between flex bg-green-600 hover:bg-green-500  px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-white shadow-sm ring-1 ring-inset "
+                    onClick={() => router.push('/namespace/create')}
+                  >
+                    Create
+                    <PlusCircleIcon className="ml-2 -mr-0.5 h-5 w-5" />
+                  </button>
                   <button
                     type="button"
                     className="rounded-md items-center align-center justify-between flex bg-white px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-200"
@@ -255,45 +262,6 @@ export default function Create() {
                 </div>
               </div>
 
-              <ul role="list" className="grid grid-cols-2 gap-4">
-                {namespaces.map((namespace) => (
-                  <li
-                    key={namespace.realName}
-                    className="bg-gray-800/60 rounded-lg shadow px-5 py-4 flex items-center justify-between space-x-4"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-white truncate">
-                        {namespace.name}
-                      </p>
-                    </div>
-                    <div className="flex-shrink-0 flex items-center space-x-2">
-                      {selectedNamespace.realName === namespace.realName ? (
-                        <div className="flex items-center space-x-2">
-                          <CheckIcon
-                            className="h-5 w-5 text-green-400 hover:text-green-500 cursor-pointer"
-                            aria-hidden="true"
-                            onClick={() => handleDelete(selectedNamespace)}
-                          />
-                          <XMarkIcon
-                            className="h-5 w-5 text-gray-400 hover:text-gray-300 cursor-pointer"
-                            aria-hidden="true"
-                            onClick={() => setSelectedNamespace({})}
-                          />
-                        </div>
-                      ) : (
-                        <TrashIcon
-                          className="h-5 w-5 text-red-400
-                        hover:text-red-500 cursor-pointer
-                        "
-                          aria-hidden="true"
-                          onClick={() => setSelectedNamespace(namespace)}
-                        />
-                      )}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-
               {deleteMessage && (
                 <p className="mt-6 text-md font-medium text-green-400 text-center">
                   {deleteMessage}
@@ -308,12 +276,11 @@ export default function Create() {
             {/* upload area */}
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
               {' '}
-              Creating namespaces
+              Updating {!!selectedNamespace.name ? selectedNamespace.name : 'namespace'}
             </h2>
             <p className="mt-4 sm:mt-6 text-sm sm:text-lg leading-6 sm:leading-8 text-gray-300">
               {' '}
-              Treat namespaces like topics of conversation. You can create as
-              many as you like, and they can be used to organize your data.
+              Please select files to add
             </p>
 
             <div
