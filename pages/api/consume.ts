@@ -14,9 +14,6 @@ import { getSession } from 'next-auth/react';
 import { v4 as uuidv4 } from 'uuid';
 
 const filePath = process.env.NODE_ENV === 'production' ? '/tmp' : 'tmp';
-interface SaveObjectsResult {
-  ids: string[];
-}
 
 export default async function handler(
   req: NextApiRequest,
@@ -99,7 +96,7 @@ export default async function handler(
       textKey: 'text',
     });
 
-    const ids: string[] = (saveRes as SaveObjectsResult).getIds();
+    // const ids: string[] = docs.map(doc => doc.id);
 
     // Delete the PDF, DOCX and TXT files
     filesToDelete.forEach((file) => {
@@ -113,7 +110,7 @@ export default async function handler(
     });
     await newNamespace.save();
 
-    res.status(200).json({ message: saveRes });
+    res.status(200).json({ message: 'success' });
   } catch (error) {
     console.log('error', error);
     res.status(500).json({ error: 'Failed to ingest your data' });
