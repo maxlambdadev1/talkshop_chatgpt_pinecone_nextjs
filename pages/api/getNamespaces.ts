@@ -10,6 +10,7 @@ type NamespaceSummary = {
 };
 
 const getNamespaces = async (req: NextApiRequest, res: NextApiResponse) => {
+  
   const session = await getSession({ req });
   if (!session) {
     return res.status(401).json({ message: 'Unauthorized' });

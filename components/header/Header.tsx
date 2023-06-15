@@ -44,7 +44,7 @@ const Header: React.FC<HeaderProps> = ({ setSidebarOpen, sidebarOpen, userImage,
               className="-ml-0.5 h-4 w-4 sm:w-5 sm:h-5"
               aria-hidden="true"
             />
-            <span>Create</span>
+            <span>Manage</span>
           </button>
         </div>
       )}

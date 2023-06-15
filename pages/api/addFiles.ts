@@ -25,7 +25,7 @@ export default async function handler(
     return res.status(401).json({ message: 'Unauthorized' });
   }
   const userEmail = session?.user?.email;
-  const { namespaceName, chunkSize, overlapSize } = req.query;
+  const { namespace, chunkSize, overlapSize } = req.query;
 
   const filesToDelete = fs
   .readdirSync(filePath)
@@ -46,12 +46,12 @@ export default async function handler(
 
   await connectDB();
   const existingNamespace = await Namespace.findOne({
-    name: namespaceName as string,
+    realName: namespace as string,
     userEmail : userEmail as string
   });
 
-  if (!!existingNamespace) {
-    return res.status(400).json({ message : 'There is a same namespace.'})
+  if (!existingNamespace) {
+    return res.status(400).json({ message : 'The namespace does not exist.'})
   } 
 
   const pinecone = await initPinecone(
@@ -90,10 +90,9 @@ export default async function handler(
     const index = pinecone.Index(targetIndex);
 
     // Store the document chunks in Pinecone with their embeddings
-    const namespaceRealName = uuidv4();        
     await PineconeStore.fromDocuments(docs, embeddings, {
       pineconeIndex: index,
-      namespace: namespaceRealName as string,
+      namespace: namespace as string,
       textKey: 'text',
     });
 
@@ -104,21 +103,14 @@ export default async function handler(
       const newFile = new SFile({
         name : file,
         size : size,
-        namespace : namespaceRealName
+        namespace : namespace
       })
       await newFile.save();
 
       fs.unlinkSync(path);
     });
 
-    const newNamespace = new Namespace({
-      userEmail: userEmail as string,
-      name: namespaceName as string,
-      realName : namespaceRealName as string
-    });
-    await newNamespace.save();
-
-    res.status(200).json({ message: 'Saved successfully' });
+    res.status(200).json({ message: 'Added files successfully' });
   } catch (error) {
     console.log('error', error);
     res.status(500).json({ error: 'Failed to ingest your data' });

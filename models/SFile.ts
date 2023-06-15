@@ -1,12 +1,12 @@
 import mongoose, { Document } from 'mongoose';
 
-export interface IFile extends Document {
+export interface ISFile extends Document {
   name: string;
   size: string;
   namespace: string;
 }
 
-const FileSchema = new mongoose.Schema(
+const SFileSchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -28,8 +28,8 @@ const FileSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-const File = mongoose.models.File
-  ? mongoose.model<IFile>('File')
-  : mongoose.model<IFile>('File', FileSchema);
+const SFile = mongoose.models.SFile
+  ? mongoose.model<ISFile>('SFile')
+  : mongoose.model<ISFile>('SFile', SFileSchema);
 
-export default File;
+export default SFile;

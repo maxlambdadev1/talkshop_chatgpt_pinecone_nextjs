@@ -124,6 +124,7 @@ export default function Create() {
         setSelectedFiles(selectedFiles);
         setUploadError('')
       }
+      setMessage('Ingest')
       setUploadMessage('Upload files')
     },
     multiple: true,
@@ -208,7 +209,7 @@ export default function Create() {
   return (
     <div className="relative isolate min-h-screen bg-gray-900">
       <div className="mx-auto grid max-w-7xl grid-cols-1 lg:grid-cols-2">
-        <div className="relative px-6 pb-12 pt-12 sm:pt-32 lg:static lg:px-8 lg:py-20 sm:flex sm:flex-col sm:justify-center">
+        <div className="relative px-6 pb-12 pt-12 sm:pt-32 lg:static lg:px-8 lg:py-20 ">
           <div className="mx-auto max-w-xl lg:mx-0 lg:max-w-lg">
             <Pattern />
             {!!error && !!error.customString && (

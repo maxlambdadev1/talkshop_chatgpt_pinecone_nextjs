@@ -24,7 +24,6 @@ export default function Update() {
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
 
   const [namespaceName, setNamespaceName] = useState<string>('');
-  const [deleteMessage, setDeleteMessage] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [message, setMessage] = useState<string>('');
   const [uploadMessage, setUploadMessage] = useState<string>('');
@@ -36,11 +35,13 @@ export default function Update() {
   );
   const [isUploaded, setIsUploaded] = useState<boolean>(false);
   const [uploadError, setUploadError] = useState<string>('');
-  const [ingestError, setIngestError] = useState<string>('');
+  const [addFilesError, setAddFilesError] = useState<string>('');
   const [namespaces, setNamespaces] = useState<any[]>([]);
   const [chunkSize, setChunkSize] = useState<number>(1200);
   const [overlapSize, setOverlapSize] = useState<number>(20);
   const [selectedNamespace, setSelectedNamespace] = useState<any>('');
+  const [files, setFiles] = useState<string[]>([]);
+  const [selectedFileName, setSelectedFileName] = useState<string>('');
   const [showChunkSizeModal, setShowChunkSizeModal] = useState<boolean>(false);
   const [showOverlapSizeModal, setShowOverlapSizeModal] =
     useState<boolean>(false);
@@ -80,37 +81,35 @@ export default function Update() {
     }
   }, []);
 
+  const getFiles = useCallback(async (namespace: string) => {
+    try {
+      const response = await fetch(`/api/getFiles?namespace=${namespace}`);
+      const data = await response.json();
+
+      if (response.ok) {
+        setFiles(data);
+        setError({
+          customString: '',
+          message: '',
+        });
+      } else {
+        setFiles([]);
+        setError(data.error);
+      }
+    } catch (err) {
+      console.log('getting files error', err);
+    }
+  }, []);
+
   useEffect(() => {
     fetchNamespaces();
   }, [fetchNamespaces]);
 
-  const handleDelete = async (namespace: any) => {
-    try {
-      const response = await fetch(
-        `/api/deleteNamespace?namespace=${namespace.realName}`,
-        {
-          method: 'DELETE'
-        },
-      );
-
-      if (response.ok) {
-        const updatedNamespaces = namespaces.filter(
-          (item) => item.realName !== namespace.realName,
-        );
-        setNamespaces(updatedNamespaces);
-        setDeleteMessage(`${namespace.name} has been successfully deleted.`);
-      } else {
-        const data = await response.json();
-        console.log(data.error);
-      }
-    } catch (error: any) {
-      console.log(error);
-      setError({
-        message: error.message,
-        customString: 'An error occured trying to delete a namespace',
-      });
+  useEffect(() => {
+    if (!!selectedNamespace) {
+      getFiles(selectedNamespace.realName);
     }
-  };
+  }, [selectedNamespace])
 
   const { getRootProps, getInputProps, open } = useDropzone({
     noClick: true,
@@ -124,6 +123,7 @@ export default function Update() {
         setSelectedFiles(selectedFiles);
         setUploadError('')
       }
+      setMessage('Add files')
       setUploadMessage('Upload files')
     },
     multiple: true,
@@ -173,12 +173,12 @@ export default function Update() {
     }
   };
 
-  const handleIngest = async () => {
+  const handleAddFiles = async () => {
     try {
       setLoading(true);
 
       const response = await fetch(
-        `/api/consume?namespaceName=${namespaceName}&chunkSize=${chunkSize}&overlapSize=${overlapSize}`,
+        `/api/addFiles?namespace=${selectedNamespace.realName}&chunkSize=${chunkSize}&overlapSize=${overlapSize}`,
         {
           method: 'POST'
         },
@@ -186,27 +186,49 @@ export default function Update() {
 
       if (response.ok) {
         const data = await response.json();
-        setMessage('Data ingestion complete');
-        fetchNamespaces();
-        setIngestError('');
+        setMessage('Adding Files completed');
+        getFiles(selectedNamespace.realName);
+        setAddFilesError('');
         setUploadedFiles([]);
         setIsUploaded(false);
         setUploadMessage('Upload files');
         setSelectedFiles([]);
       } else {
         const errorData = await response.json();
-        setIngestError(errorData.message);
+        setAddFilesError(errorData.message);
       }
     } catch (error: any) {
-      setIngestError('Server error');
+      setAddFilesError('Server error');
     }
     setLoading(false);
   };
 
+  const handleFileDelete = async (fileName: string) => {
+    console.log('file to delete : ', fileName);
+    try {
+      const response = await fetch(
+        `/api/deleteFile?namespace=${selectedNamespace.realName}&fileName=${fileName}`,
+        {
+          method: 'POST'
+        },
+      );
+
+      if (response.ok) {
+        setFiles(files => files.filter((file: any) => file.name != fileName))
+      } else {
+        const errorData = await response.json();
+        console.log('error', errorData.message);
+      }
+      setSelectedFileName('');
+    } catch (err) {
+      console.log('deleting error', err)
+    }
+  }
+
   return (
     <div className="relative isolate min-h-screen bg-gray-900">
       <div className="mx-auto grid max-w-7xl grid-cols-1 lg:grid-cols-2">
-        <div className="relative px-6 pb-12 pt-12 sm:pt-32 lg:static lg:px-8 lg:py-20 sm:flex sm:flex-col sm:justify-center">
+        <div className="relative px-6 pb-12 pt-12 sm:pt-32 lg:static lg:px-8 lg:py-20 ">
           <div className="mx-auto max-w-xl lg:mx-0 lg:max-w-lg">
             <Pattern />
             {!!error && !!error.customString && (
@@ -262,11 +284,54 @@ export default function Update() {
                 </div>
               </div>
 
-              {deleteMessage && (
-                <p className="mt-6 text-md font-medium text-green-400 text-center">
-                  {deleteMessage}
-                </p>
+              {!!files && files.length > 0 ? (
+                <table className='w-full my-4 sm:my-6'>
+                  <thead>
+                    <tr className='font-semibold text-lg text-gray-100 my-2 sm:my-4 leading-loose'>
+                      <th className='text-left'>File Name</th>
+                      <th className='text-right '>Size</th>
+                      <th className='text-right w-16'>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {files.map((file: any, index) => (
+                      <tr className='text-white hover:bg-gray-500 ' key={index}>
+                        <td>{file.name}</td>
+                        <td className='text-right '>{file.size} Byte</td>
+                        <td className='flex justify-end items-center'>
+                          <div className="flex-shrink-0 space-x-2 py-2">
+                            {selectedFileName === file.name ? (
+                              <div className="flex items-center space-x-2">
+                                <CheckIcon
+                                  className="h-5 w-5 text-green-400 hover:text-green-500 cursor-pointer"
+                                  aria-hidden="true"
+                                  onClick={() => handleFileDelete(selectedFileName)}
+                                />
+                                <XMarkIcon
+                                  className="h-5 w-5 text-gray-400 hover:text-gray-300 cursor-pointer"
+                                  aria-hidden="true"
+                                  onClick={() => setSelectedFileName('')}
+                                />
+                              </div>
+                            ) : (
+                              <TrashIcon
+                                className="h-5 w-5 text-red-400
+                        hover:text-red-500 cursor-pointer
+                        "
+                                aria-hidden="true"
+                                onClick={() => setSelectedFileName(file.name)}
+                              />
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <p className='p-3 text-center text-gray-100'>There are no files.</p>
               )}
+
             </div>
           </div>
         </div>
@@ -276,7 +341,7 @@ export default function Update() {
             {/* upload area */}
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
               {' '}
-              Updating {!!selectedNamespace.name ? selectedNamespace.name : 'namespace'}
+              Updating &#34;{!!selectedNamespace.name ? selectedNamespace.name : 'namespace'}&#34;
             </h2>
             <p className="mt-4 sm:mt-6 text-sm sm:text-lg leading-6 sm:leading-8 text-gray-300">
               {' '}
@@ -400,41 +465,20 @@ export default function Update() {
               setOpen={setShowOverlapSizeModal}
             />
 
-            {isUploaded && (
-              <div className="mt-2 sm:mt-4 grid grid-cols-1 gap-x-4 sm:gap-x-8 gap-y-4 sm:gap-y-6 sm:grid-cols-2">
-                <div className="sm:col-span-2">
-                  <label
-                    htmlFor="email"
-                    className="block text-sm font-semibold leading-6 text-white"
-                  >
-                    Namespace name
-                  </label>
-
-                  <div className="mt-2.5">
-                    <input
-                      type="text"
-                      className="block w-full rounded-md border-0 bg-white/5 px-2 sm:px-3.5 py-1.5 sm:py-2 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 text-sm sm:text-base sm:leading-6 opacity-50"
-                      value={namespaceName}
-                      onChange={(e) => setNamespaceName(e.target.value)}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-            {isUploaded && !!ingestError && (
+            {isUploaded && !!addFilesError && (
               <div className="mt-4 sm:mt-8 flex justify-center mb-4">
                 <div className="text-red-500 text-sm sm:text-base font-semibold">
-                  {ingestError}
+                  {addFilesError}
                 </div>
               </div>
             )}
-            {isUploaded && namespaceName && (
+            {isUploaded && !!selectedNamespace && (
               <div className="mt-2 sm:mt-4 flex justify-end">
                 <button
                   className="rounded-md bg-indigo-500 px-2.5 sm:px-3.5 py-1.5 sm:py-2.5 text-center text-sm sm:text-base font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
-                  onClick={handleIngest}
+                  onClick={handleAddFiles}
                 >
-                  {loading ? 'Ingesting...' : message ? message : 'Ingest'}
+                  {loading ? 'Adding...' : message ? message : 'Add Files'}
                 </button>
               </div>
             )}

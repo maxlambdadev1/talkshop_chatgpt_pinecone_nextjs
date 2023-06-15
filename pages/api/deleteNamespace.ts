@@ -4,6 +4,7 @@ import connectDB from '@/utils/mongoConnection';
 import Namespace from '@/models/Namespace';
 import { ChatModel, IChat } from '@/models/ChatModel';
 import Message from '@/models/Message';
+import SFile from '@/models/SFile';
 import mongoose from 'mongoose';
 import { getSession } from 'next-auth/react';
 
@@ -56,6 +57,7 @@ export default async function handler(
     await Namespace.deleteOne({ realName: namespace, userEmail });
     await ChatModelTyped.deleteMany({  namespace, userEmail });
     await Message.deleteMany({ namespace, userEmail });
+    await SFile.deleteMany({ namespace });
 
     res.status(200).json({ message: 'Namespace deleted successfully.' });
   } catch (error) {
