@@ -187,7 +187,7 @@ export default function Update() {
       if (response.ok) {
         const data = await response.json();
         setMessage('Adding Files completed');
-        getFiles(selectedNamespace.realName);
+        setTimeout(() => getFiles(selectedNamespace.realName), 500);
         setAddFilesError('');
         setUploadedFiles([]);
         setIsUploaded(false);

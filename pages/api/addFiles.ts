@@ -28,15 +28,17 @@ export default async function handler(
   const { namespace, chunkSize, overlapSize } = req.query;
 
   const filesToDelete = fs
-  .readdirSync(filePath)
-  .filter(
-    (file) =>
-      file.endsWith('.pdf') ||
-      file.endsWith('.docx') ||
-      file.endsWith('.txt'),
-  );
+    .readdirSync(filePath)
+    .filter(
+      (file) =>
+        file.endsWith('.pdf') ||
+        file.endsWith('.docx') ||
+        file.endsWith('.txt'),
+    );
   if (filesToDelete.length <= 0) {
-    return res.status(400).json({message : 'There are no any files for embedding to pinecone.'})
+    return res
+      .status(400)
+      .json({ message: 'There are no any files for embedding to pinecone.' });
   }
 
   const openAIapiKey = process.env.OPENAI_API_KEY;
@@ -47,12 +49,12 @@ export default async function handler(
   await connectDB();
   const existingNamespace = await Namespace.findOne({
     realName: namespace as string,
-    userEmail : userEmail as string
+    userEmail: userEmail as string,
   });
 
   if (!existingNamespace) {
-    return res.status(400).json({ message : 'The namespace does not exist.'})
-  } 
+    return res.status(400).json({ message: 'The namespace does not exist.' });
+  }
 
   const pinecone = await initPinecone(
     pineconeApiKey as string,
@@ -100,13 +102,19 @@ export default async function handler(
     filesToDelete.forEach(async (file) => {
       let path = `${filePath}/${file}`;
       let size = fs.statSync(path).size;
-      const newFile = new SFile({
-        name : file,
-        size : size,
-        namespace : namespace
-      })
-      await newFile.save();
 
+      const existingFile = await SFile.findOne({
+        name: file,
+        namespace: namespace,
+      });
+      if (!existingFile) {
+        const newFile = new SFile({
+          name: file,
+          size: size,
+          namespace: namespace,
+        });
+        await newFile.save();
+      }
       fs.unlinkSync(path);
     });
 

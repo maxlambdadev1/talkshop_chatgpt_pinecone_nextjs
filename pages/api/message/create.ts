@@ -6,6 +6,9 @@ import { initPinecone } from '@/utils/pinecone-client';
 import { SourceDoc } from '@/types';
 import connectDB from '@/utils/mongoConnection';
 import Message from '@/models/Message';
+import SFile from '@/models/SFile';
+import Namespace from '@/models/Namespace';
+import { PromptTemplate } from "langchain/prompts";
 
 export default async function handler(
   req: NextApiRequest,
@@ -49,7 +52,7 @@ export default async function handler(
   }
 
   const sanitizedQuestion = question.trim().replaceAll('\n', ' ');
-  try {    
+  try {
     const index = pinecone.Index(targetIndex as string);
 
     const vectorStore = await PineconeStore.fromExistingIndex(
@@ -63,17 +66,50 @@ export default async function handler(
       },
     );
 
+    let filesInfo = await SFile.find({
+      namespace : selectedNamespace,      
+    })
+    let filenames = filesInfo.map((item : any) => item.name);
+    let filenamesString = filenames.reduce((total : string , item : any) => total + ', ' + item);
+    
+    // Provide your response in markdown format.`;
+    let qa_prompt = `You are an intelligent AI assistant designed to interpret and answer questions and instructions based on specific provided documents. The context from these documents has been processed and made accessible to you. 
+
+Your mission is to generate answers that are accurate, succinct, and comprehensive, drawing upon the information contained in the context of the documents. If the answer isn't readily found in the documents, you should make use of your training data and understood context to infer and provide the most plausible response.
+
+You are also capable of evaluating, comparing and providing opinions based on the content of these documents. Hence, if asked to compare or analyze the documents, use your AI understanding to deliver an insightful response.
+
+Here is the context from the documents:
+
+Context: {context}
+
+Here is the user's question:
+
+Question: {question}
+
+filenames : ${filenamesString}
+
+Provide your response as following styles.
+In filename1, ...
+In filename2, ...
+...
+
+Provide your response in markdown format.`;
+
     const chain = makeChain(
       vectorStore,
       returnSourceDocuments,
       modelTemperature,
       openAIapiKey as string,
+      qa_prompt
     );
     const response = await chain.call({
       question: sanitizedQuestion,
       chat_history: history || [],
+      filenames : filenamesString
     });
-    
+
+    await connectDB();
     const userMessage = new Message({
       sender: 'user',
       content: sanitizedQuestion,
@@ -101,6 +137,7 @@ export default async function handler(
     res
       .status(200)
       .json({ text: response.text, sourceDocuments: response.sourceDocuments });
+
   } catch (error: any) {
     console.log('error', error);
     res.status(500).json({ error: error.message || 'Something went wrong' });
