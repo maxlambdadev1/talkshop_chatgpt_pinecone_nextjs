@@ -14,10 +14,8 @@ import connectDB from '@/utils/mongoConnection';
 import { getSession } from 'next-auth/react';
 import { v4 as uuidv4 } from 'uuid';
 
-const prefix =
-  process.env.NODE_ENV === 'production'
-    ? '/tmp/'
-    : 'F:\\bs\\dominic\\projects\\doc-chatbot project\\talkshop\\tmp\\';
+const prefixProd = '/tmp/';
+const prefixDev = 'F:\\bs\\dominic\\projects\\doc-chatbot project\\talkshop\\tmp\\';
 
 export default async function handler(
   req: NextApiRequest,
@@ -61,14 +59,14 @@ export default async function handler(
     for (let i = 0; i < 1536; i++) {
       vector1.push(0);
     }
-    const source = `${prefix}${fileName}`;
+    const source = [`${prefixProd}${fileName}`, `${prefixDev}${fileName}`];
     const queryResponse = await index.query({
       queryRequest: {
         namespace,
         topK: 10000,
         filter: {
           source: {
-            $eq: source,
+            $in: source,
           },
         },
         //   includeValues: true,

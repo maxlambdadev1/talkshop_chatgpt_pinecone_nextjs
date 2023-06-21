@@ -341,7 +341,7 @@ export default function Update() {
             {/* upload area */}
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
               {' '}
-              Updating &#34;{!!selectedNamespace.name ? selectedNamespace.name : 'namespace'}&#34;
+              Updating - {!!selectedNamespace.name ? selectedNamespace.name : 'namespace'}
             </h2>
             <p className="mt-4 sm:mt-6 text-sm sm:text-lg leading-6 sm:leading-8 text-gray-300">
               {' '}
