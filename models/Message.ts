@@ -51,6 +51,12 @@ const MessageSchema = new mongoose.Schema(
         },
       },
     ],
+    detail: [
+      {
+        fileName : String,
+        text : String
+      }
+    ] ,
     createdAt: {
       type: Date,
       default: Date.now,

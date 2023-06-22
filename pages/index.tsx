@@ -40,7 +40,9 @@ export default function Home() {
   const [userEmail, setUserEmail] = useState<string>('');
   const [userName, setUserName] = useState<string>('');
   const [userImage, setUserImage] = useState<string>('');
-  const [userRole, setUserRole] = useState<string>('user');
+  const [userRole, setUserRole] = useState<string>('user');  
+  const [allFiles, setAllFiles] = useState<string[]>([]);
+  const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
 
   useEffect(() => {
     if (!!userInfo && !!userInfo.role ) setUserRole(userInfo.role);
@@ -64,6 +66,29 @@ export default function Home() {
     filteredChatList,
     getConversation,
   } = useChats(selectedNamespace.realName, userEmail);
+  
+  const getFiles = async (selectedNamespace : any) => {
+    try {
+      const response = await fetch(`/api/getFiles?namespace=${selectedNamespace.realName}`);
+      const data = await response.json();
+
+      if (response.ok) {
+        setAllFiles(data.map((file:any) => file.name));
+        setSelectedFiles(data.map((file:any) => file.name));
+      } else {
+        setAllFiles([]);
+      }
+    } catch (err) {
+      console.log('getting files error', err);
+    }
+  }
+
+  useEffect(() => {
+    if (!!selectedNamespace) {
+      getFiles(selectedNamespace);
+    }
+  }, [selectedNamespace]);
+
 
   const userHasNamespaces = namespaces.length > 0;
 
@@ -242,6 +267,8 @@ export default function Home() {
         selectedNamespace : selectedNamespace.realName,
         returnSourceDocuments,
         modelTemperature,
+        userEmail,
+        selectedFiles
       }),
     });
 
@@ -370,6 +397,9 @@ export default function Home() {
                       setModelTemperature={setModelTemperature}
                       nameSpaceHasChats={nameSpaceHasChats}
                       isLoadingNamespaces={isLoadingNamespaces}
+                      allFiles = {allFiles}
+                      selectedFiles = {selectedFiles}
+                      setSelectedFiles = {setSelectedFiles}
                     />
                   </div>
                 </Dialog.Panel>
@@ -399,6 +429,9 @@ export default function Home() {
               setModelTemperature={setModelTemperature}
               nameSpaceHasChats={nameSpaceHasChats}
               isLoadingNamespaces={isLoadingNamespaces}
+              allFiles = {allFiles}
+              selectedFiles = {selectedFiles}
+              setSelectedFiles = {setSelectedFiles}
             />
           </div>
         </div>

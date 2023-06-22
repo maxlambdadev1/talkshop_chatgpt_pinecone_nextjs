@@ -8,6 +8,7 @@ import connectDB from '@/utils/mongoConnection';
 import Message from '@/models/Message';
 import SFile from '@/models/SFile';
 import Namespace from '@/models/Namespace';
+import { getSession } from 'next-auth/react';
 import { PromptTemplate } from 'langchain/prompts';
 
 const prefixProd = '/tmp/';
@@ -18,12 +19,21 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
+
+  // const session = await getSession({ req });
+  // if (!session) {
+  //   return res.status(401).json({ message: 'Unauthorized' });
+  // }
+  // const userEmail = session?.user?.email;
+
   const {
     question,
     chatId,
     selectedNamespace,
     returnSourceDocuments,
     modelTemperature,
+    userEmail,
+    selectedFiles
   } = req.body;
 
   const openAIapiKey = process.env.OPENAI_API_KEY;
@@ -49,6 +59,10 @@ export default async function handler(
     return res.status(400).json({ message: 'No question in the request' });
   }
 
+  if (selectedFiles.length <= 0) {
+    return res.status(400).json({ message: 'Please include the files' });
+  }
+
   if (!pinecone) {
     return res.status(400).json({ message: 'There is no correct pinecone' });
   }
@@ -57,13 +71,13 @@ export default async function handler(
   try {
     const index = pinecone.Index(targetIndex as string);
 
-    let filesInfo = await SFile.find({
-      namespace: selectedNamespace,
-    }).sort({ name: 1 }); //asc
+    // let filesInfo = await SFile.find({
+    //   namespace: selectedNamespace,
+    // }).sort({ name: 1 }); //asc
+    // let fileNames = filesInfo.map((item: any) => item.name);
+    let fileNames = selectedFiles.sort();
 
-    let fileNames = filesInfo.map((item: any) => item.name);
-
-    const response1 = [];
+    const response1 = [];  
     for (let i = 0; i < fileNames.length; i++) {
       let fileName = fileNames[i];
 
@@ -129,7 +143,7 @@ export default async function handler(
                 botText,
               ];
             })
-          : [];
+          : [];   
 
       const chain = makeChain(
         vectorStore,
@@ -148,7 +162,7 @@ export default async function handler(
     const text = response
       .map((item) => item.text)
       .reduce((total, item) => total + '\n\r' + item);
-    const sourceDocs = returnSourceDocuments ? response
+    const sourceDocs = returnSourceDocuments  ? response
       .map((item) => { return !!item.sourceDocuments ? item.sourceDocuments : []})
       .reduce((total, item) => total.concat(item)) : [];
     const detail = response.map((item, index) => ({
@@ -156,31 +170,26 @@ export default async function handler(
       text: item.text,
     }));
 
-    // await connectDB();
-    // const userMessage = new Message({
-    //   sender: 'user',
-    //   content: sanitizedQuestion,
-    //   chatId: chatId,
-    //   namespace: selectedNamespace,
-    //   userEmail: userEmail,
-    // });
-    // await userMessage.save();
+    await connectDB();
+    const userMessage = new Message({
+      sender: 'user',
+      content: sanitizedQuestion,
+      chatId: chatId,
+      namespace: selectedNamespace,
+      userEmail: userEmail,
+    });
+    await userMessage.save();
 
-    // const botMessage = new Message({
-    //   sender: 'bot',
-    //   content: response.text.toString(),
-    //   chatId: chatId,
-    //   namespace: selectedNamespace,
-    //   userEmail: userEmail,
-    //   sourceDocs: response.sourceDocuments
-    //     ? response.sourceDocuments.map((doc: SourceDoc) => ({
-    //         pageContent: doc.pageContent,
-    //         metadata: { source: doc.metadata.source },
-    //       }))
-    //     : [],
-    //   detail : detail
-    // });
-    // await botMessage.save();
+    const botMessage = new Message({
+      sender: 'bot',
+      content: text.toString(),
+      chatId: chatId,
+      namespace: selectedNamespace,
+      userEmail: userEmail,
+      sourceDocs: sourceDocs,
+      detail : detail
+    });
+    await botMessage.save();
 
     res
       .status(200)

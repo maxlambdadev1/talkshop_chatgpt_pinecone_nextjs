@@ -1,10 +1,11 @@
-import React from 'react';
-import { PlusCircleIcon } from '@heroicons/react/20/solid';
+import React, {useState, useEffect} from 'react';
+import { PlusCircleIcon, HandRaisedIcon } from '@heroicons/react/20/solid';
 import Button from '../buttons/Button';
 import ListOfChats from './ListOfChats';
 import ListOfNamespaces from './ListOfNamespaces';
 import SourceDocumentsToggle from './SourceDocumentsToggle';
 import ModelTemperature from './ModelTemperature';
+import SelectFilesModal from '@/components/other/SelectFilesModal';
 
 interface SidebarListProps {
   createChat: (title : string) => Promise<string>;
@@ -24,6 +25,9 @@ interface SidebarListProps {
   namespaces: any[];
   setSelectedNamespace: React.Dispatch<React.SetStateAction<any>>;
   isLoadingNamespaces: boolean;
+  allFiles : string[];
+  selectedFiles : string[];
+  setSelectedFiles :  React.Dispatch<React.SetStateAction<any>>;
 }
 
 const SidebarList: React.FC<SidebarListProps> = ({
@@ -44,7 +48,12 @@ const SidebarList: React.FC<SidebarListProps> = ({
   namespaces,
   setSelectedNamespace,
   isLoadingNamespaces,
+  allFiles,
+  selectedFiles,
+  setSelectedFiles
 }) => {
+  const [showSelectFilesModal, setShowSelectFilesModal] = useState<boolean>(false);
+
   return (
     <nav className="flex flex-col h-full">
       <div>
@@ -77,6 +86,18 @@ const SidebarList: React.FC<SidebarListProps> = ({
         </div>
 
         {!!selectedNamespace?.realName && (
+          <>
+          <div className="flex items-center px-4 mb-2">
+            <span
+              className="block text-sm font-medium leading-6 text-gray-300"
+            >
+              Select Files
+            </span>
+            <HandRaisedIcon
+              className="ml-2 h-5 w-5 text-gray-300 hover:text-gray-400 cursor-pointer"
+              onClick={() => setShowSelectFilesModal(true)}
+            />
+          </div>
           <div className="px-4 space-y-3 mb-4">           
             <Button
               buttonType="primary"
@@ -98,6 +119,7 @@ const SidebarList: React.FC<SidebarListProps> = ({
               icon={PlusCircleIcon}
             />
           </div>
+          </>
         )}
 
         <div className="px-4 text-xs sm:text-sm font-semibold leading-6 text-blue-400">
@@ -122,6 +144,13 @@ const SidebarList: React.FC<SidebarListProps> = ({
           )}
         </div>
       </>
+      <SelectFilesModal
+        open={showSelectFilesModal}
+        setOpen={setShowSelectFilesModal}
+        allFiles = {allFiles}
+        selectedFiles = {selectedFiles}
+        setSelectedFiles = {setSelectedFiles}
+      />
     </nav>
   );
 };
