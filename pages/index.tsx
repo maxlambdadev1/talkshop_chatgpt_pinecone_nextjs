@@ -88,6 +88,10 @@ export default function Home() {
       getFiles(selectedNamespace);
     }
   }, [selectedNamespace]);
+  
+  useEffect(() => {
+    console.log('selectedFiles', selectedFiles)
+  }, [selectedFiles]);
 
 
   const userHasNamespaces = namespaces.length > 0;

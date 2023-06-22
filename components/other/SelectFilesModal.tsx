@@ -23,6 +23,13 @@ function SelectFilesModal({
       setSelectedFiles1(selectedFiles);
     }
   }, [selectedFiles])
+  
+  useEffect(() => {
+    if (!open) {
+      setSelectedFiles1([...selectedFiles]);
+    }
+  }, [open])
+
 
   const onchangeFile = (file : string) => {
       console.log('file', file)
@@ -38,7 +45,7 @@ function SelectFilesModal({
 
   const onSelectFiles = () => {
     if (selectedFiles1.length > 0 ) {
-      setSelectedFiles(selectedFiles1);
+      setSelectedFiles([...selectedFiles1]);
       setOpen(false)
     } else {
       alert('You must select the files')
