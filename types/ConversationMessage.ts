@@ -5,4 +5,5 @@ export type ConversationMessage = {
   message: string;
   isStreaming?: boolean;
   sourceDocs?: Document[];
+  detail : {fileName : string; text:string;}[];
 };

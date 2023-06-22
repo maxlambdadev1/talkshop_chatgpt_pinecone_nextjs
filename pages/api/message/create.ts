@@ -20,12 +20,10 @@ export default async function handler(
 ) {
   const {
     question,
-    history,
     chatId,
     selectedNamespace,
     returnSourceDocuments,
     modelTemperature,
-    userEmail,
   } = req.body;
 
   const openAIapiKey = process.env.OPENAI_API_KEY;
@@ -61,12 +59,22 @@ export default async function handler(
 
     let filesInfo = await SFile.find({
       namespace: selectedNamespace,
-    });
-    let filenames = filesInfo.map((item: any) => item.name);
+    }).sort({ name: 1 }); //asc
+
+    let fileNames = filesInfo.map((item: any) => item.name);
 
     const response1 = [];
-    for (let i = 0; i < filenames.length; i++) {
-      let fileName = filenames[i];
+    for (let i = 0; i < fileNames.length; i++) {
+      let fileName = fileNames[i];
+
+      const messages = await Message.find({
+        chatId,
+        namespace: selectedNamespace,
+      });
+      const pairedMessages = [];
+      for (let i = 0; i < messages.length; i += 2) {
+        pairedMessages.push([messages[i], messages[i + 1]]); //[user, bot]
+      }
 
       const vectorStore = await PineconeStore.fromExistingIndex(
         new OpenAIEmbeddings({
@@ -76,11 +84,11 @@ export default async function handler(
           pineconeIndex: index,
           textKey: 'text',
           namespace: selectedNamespace,
-          filter : {
+          filter: {
             source: {
               $in: [`${prefixProd}${fileName}`, `${prefixDev}${fileName}`],
             },
-          }
+          },
         },
       );
 
@@ -100,13 +108,29 @@ export default async function handler(
   Question: {question}
   
   This is the fileName that contain the documents : ${fileName}
-  Ignore the chat history content about other file's content. Only use the chat history for the file.
-
+  
   Provide your response as following styles finally : 
-  In ${fileName}, ...
+  ${fileName} :  ...
   
   Provide your response in markdown format.`;
-  
+
+      const history =
+        pairedMessages.length > 0
+          ? pairedMessages.map((item) => {
+              let botAns = item[1].detail.filter(
+                (item1) => item1.fileName === fileName,
+              );
+              let botText = '';
+              if (botAns.length > 0) {
+                botText = botAns[0].text;
+              }
+              return [
+                item[0].content, //user
+                botText,
+              ];
+            })
+          : [];
+
       const chain = makeChain(
         vectorStore,
         returnSourceDocuments,
@@ -121,7 +145,16 @@ export default async function handler(
       });
     }
     const response = await Promise.all([...response1]);
-    const text = response.map(item => item.text).reduce((total, item) => total + '\n\r' + item )
+    const text = response
+      .map((item) => item.text)
+      .reduce((total, item) => total + '\n\r' + item);
+    const sourceDocs = returnSourceDocuments ? response
+      .map((item) => { return !!item.sourceDocuments ? item.sourceDocuments : []})
+      .reduce((total, item) => total.concat(item)) : [];
+    const detail = response.map((item, index) => ({
+      fileName: fileNames[index],
+      text: item.text,
+    }));
 
     // await connectDB();
     // const userMessage = new Message({
@@ -145,14 +178,13 @@ export default async function handler(
     //         metadata: { source: doc.metadata.source },
     //       }))
     //     : [],
+    //   detail : detail
     // });
     // await botMessage.save();
 
-    // res
-    //   .status(200)
-    //   .json({ text: response.text, sourceDocuments: response.sourceDocuments });
-
-    res.status(200).json({text : text, sourceDocuments : []})
+    res
+      .status(200)
+      .json({ text: text, sourceDocuments: sourceDocs, detail: detail });
   } catch (error: any) {
     console.log('error', error);
     res.status(500).json({ error: error.message || 'Something went wrong' });

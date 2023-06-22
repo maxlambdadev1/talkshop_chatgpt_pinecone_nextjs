@@ -7,12 +7,18 @@ export interface IDocument {
   };
 }
 
+export interface IDetail {
+  fileName: string;
+  text: string;
+}
+
 export interface IMessage extends Document {
   sender: string;
   content: string;
   chatId: string;
   namespace: string;
   sourceDocs?: IDocument[];
+  detail : IDetail[];
 }
 
 const MessageSchema = new mongoose.Schema(

@@ -72,11 +72,9 @@ export default function Home() {
   const [conversation, setConversation] = useState<{
     messages: ConversationMessage[];
     pending?: string;
-    history: [string, string][];
     pendingSourceDocs?: Document[];
   }>({
-    messages: [],
-    history: [],
+    messages: []
   });
 
   function mapConversationMessageToMessage(
@@ -91,7 +89,7 @@ export default function Home() {
     };
   }
 
-  const { messages, history } = conversation;
+  const { messages } = conversation;
 
   const messageListRef = useRef<HTMLDivElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
@@ -105,14 +103,13 @@ export default function Home() {
         return;
       }
 
-      const initialConversation = {
+      const initialConversation : any = {
         messages: [
           {
             message: 'Hi, what would you like to know about these documents?',
             type: 'apiMessage' as const,
           },
-        ],
-        history: [],
+        ]
       };
 
       if (conversations.length > 0) {
@@ -133,12 +130,8 @@ export default function Home() {
               pageContent: doc.pageContent,
               metadata: { source: doc.metadata.source },
             })),
-          }))],
-          history: [...initialConversation.history,
-          ...pairedMessages.map(([userMessage, botMessage]: any) => [
-            userMessage.content,
-            botMessage?.content || '',
-          ])],
+            detail : message.detail
+          }))]
         }));
       } else {
         setConversation(initialConversation);
@@ -238,7 +231,6 @@ export default function Home() {
     setLoading(true);
     setQuery('');
 
-    console.log('history', history);
     const response = await fetch('/api/message/create', {
       method: 'POST',
       headers: {
@@ -246,12 +238,10 @@ export default function Home() {
       },
       body: JSON.stringify({
         question,
-        history: conversation.history,
         chatId: selectedChatId,
         selectedNamespace : selectedNamespace.realName,
         returnSourceDocuments,
         modelTemperature,
-        userEmail,
       }),
     });
 
@@ -278,11 +268,7 @@ export default function Home() {
                 )
                 : undefined,
             } as ConversationMessage,
-          ],
-          history: [
-            ...prevConversation.history,
-            [question, data.text] as [string, string],
-          ],
+          ]
         };
 
         return updatedConversation;
