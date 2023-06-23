@@ -13,6 +13,9 @@ type ChatFormProps = {
   handleEnter: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   handleSubmit: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
   setQuery: (query: string) => void;
+  namespaces : any[];
+  selectedNamespaces : any[];
+  setSelectedNamespaces : React.Dispatch<React.SetStateAction<any[]>>;
 };
 
 const ChatForm = ({
@@ -22,11 +25,13 @@ const ChatForm = ({
   handleEnter,
   handleSubmit,
   setQuery,
+  namespaces,
+  selectedNamespaces,
+  setSelectedNamespaces
 }: ChatFormProps) => {
   const otherRef = useRef<HTMLTextAreaElement>(null);
   const submitRef = useRef<HTMLButtonElement>(null);
 
-  const [data, setData] = useState<any[]>([]);
   const [selectData, setSelectData] = useState<any[]>([]);
   const [selectedData, setSelectedData] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
@@ -48,10 +53,7 @@ const ChatForm = ({
       const res = await response.json();
 
       if (response.ok) {
-        setData(res.data);
         setCategories(res.categories);
-        const tempData = res.data.map((item: any) => ({ value: item.dataName, label: item.dataName }))
-        setSelectData(tempData);
       } else {
         console.error(res.error);
       }
@@ -63,17 +65,39 @@ const ChatForm = ({
   useEffect(() => {
     getDataCategories();
   }, []);
+  
+  useEffect(() => {
+    if (namespaces.length > 0) {
+        const tempData = namespaces.map((item: any) => ({ value: item.realName, label: item.name }))
+        setSelectData(tempData);
+    }
+  }, [namespaces]);
 
   useEffect(() => {
-    const arr: any = [];
+    if (selectData.length > 0) {
+        setSelectedData([selectData[0]]);
+    }
+  }, [selectData]);
+
+  useEffect(() => {
+    // const arr: any = [];
+    // selectedData.forEach((item: any) => {
+    //   let value = item.value;
+    //   categories.forEach((item1: any) => { if (value === item1.dataName) arr.push(item1); });
+    // })
+    // const arr1 = arr.map((item: any) => ({ value: item.categoryName, label: item.categoryName }));
+    // setSelectedCategory({});
+    // setPrompts([]);
+    // setSelectCategories(arr1)
+
+    const arr:any[] = [];
     selectedData.forEach((item: any) => {
       let value = item.value;
-      categories.forEach((item1: any) => { if (value === item1.dataName) arr.push(item1); });
+      const arr1 = namespaces.filter((item) => item.realName === value);
+      if (arr1.length > 0) arr.push(arr1[0]);
     })
-    const arr1 = arr.map((item: any) => ({ value: item.categoryName, label: item.categoryName }));
-    setSelectedCategory({});
-    setPrompts([]);
-    setSelectCategories(arr1)
+    console.log('selectedData', selectedData, arr)
+    setSelectedNamespaces(arr);
   }, [selectedData, categories]);
 
   const getPrompts = async (dataName: string, categoryName: string) => {
@@ -156,7 +180,7 @@ const ChatForm = ({
       <div className='w-full max-w-4xl m-auto px-4 sm:px-8'>
         <div className='w-full'>
           <div className='flex'>
-            <div className='w-full w-1/2 sm:w-60'>
+            <div className='w-full w-1/2 sm:w-72'>
               <Select
                 value={selectedData}
                 onChange={(selectedData: any) => setSelectedData(selectedData)}
@@ -166,7 +190,7 @@ const ChatForm = ({
                 styles={customStyles}
               />
             </div>
-            <div className='w-full w-1/2 ml-2 sm:w-60 sm:ml-4'>
+            <div className='w-full w-1/2 ml-2 sm:w-72 sm:ml-4'>
               <Select
                 value={selectedCategory}
                 onChange={(selectedCategory: any) => {setSelectedCategory(selectedCategory); }}

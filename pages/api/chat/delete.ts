@@ -12,9 +12,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const ChatModelTyped = ChatModel as mongoose.Model<IChat>;
 
   const chatId = req.body.chatId as string;
-  const namespace = req.body.namespace as string;
 
-  if (!chatId || !namespace) {
+  if (!chatId ) {
     res.status(400).send('Bad request: chatId and namespace are required');
     return;
   }
@@ -22,8 +21,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     await connectDB();
 
-    await Message.deleteMany({ chatId, namespace });
-    await ChatModelTyped.deleteOne({ chatId, namespace });
+    await Message.deleteMany({ chatId });
+    await ChatModelTyped.findByIdAndDelete(chatId);
 
     res.status(200).send('Chat and its messages deleted successfully');
   } catch (error) {

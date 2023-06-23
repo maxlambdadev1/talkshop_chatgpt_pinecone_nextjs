@@ -7,17 +7,16 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const ChatModelTyped = ChatModel as mongoose.Model<IChat>;
 
-  const namespace = req.query.namespace as string;
   const userEmail = req.query.userEmail as string;
 
-  if (!userEmail || !namespace) {
-    res.status(400).send('Bad request: userEmail and namespace are required');
+  if (!userEmail) {
+    res.status(400).send('Bad request: userEmail is required');
     return;
   }
 
   try {
     await connectDB();
-    const chatList = await ChatModelTyped.find({ namespace, userEmail }).sort({createdAt : 1});
+    const chatList = await ChatModelTyped.find({ userEmail }).sort({createdAt : -1}); //desc
     res.status(200).json(chatList);
   } catch (error) {
     console.error('Error getting chatList:', error);

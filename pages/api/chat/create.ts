@@ -14,18 +14,12 @@ export default async function handler(
     await connectDB();
 
     try {
-      const { chatId, title, namespace, userEmail } = req.body;
+      const { title, userEmail } = req.body;
 
-      if (!chatId || !namespace || !userEmail || !title) return res.status(400).json({message : 'input all data correctly.'})
-      const existedChat = await ChatModelTyped.findOne({
-        chatId, namespace
-      });
-      if (!!existedChat) return res.status(400).json({message : 'The chatId already exist'});
+      if (!userEmail || !title) return res.status(400).json({message : 'input all data correctly.'})
 
       const newChat = await ChatModelTyped.create({
-        chatId,
         title,
-        namespace,
         userEmail,
       });
 

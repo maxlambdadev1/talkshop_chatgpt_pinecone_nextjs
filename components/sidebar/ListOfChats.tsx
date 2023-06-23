@@ -6,14 +6,14 @@ function classNames(...classes: string[]) {
 }
 
 const ListOfChats = ({
-  filteredChatList,
+  chatList,
   selectedChatId,
   setSelectedChatId,
   chatNames,
   updateChatName,
   deleteChat,
 }: {
-  filteredChatList: string[];
+  chatList: any[];
   selectedChatId: string;
   setSelectedChatId: (chatId: string) => void;
   chatNames: { [chatId: string]: string };
@@ -37,32 +37,34 @@ const ListOfChats = ({
     deleteChat(chatId);
   };
 
+  // console.log('chatList', chatList)
+
   return (
     <ul role="list" className="-mx-2 mt-2 px-2 pb-6 space-y-1">
-      {[...filteredChatList].reverse().map((chatId, index) => (
+      {[...chatList].map((chat, index) => (
         <li
-          key={chatId}
+          key={chat._id}
           className={classNames(
-            chatId === selectedChatId
+            chat._id === selectedChatId
               ? 'bg-gray-800 text-white'
               : 'text-gray-400 hover:text-white hover:bg-gray-800',
             'group flex w-full gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold cursor-pointer',
           )}
-          onClick={() => handleChatClick(chatId)}
+          onClick={() => handleChatClick(chat._id)}
         >
-          {chatNames[chatId] === 'Chat' ? `Chat ${filteredChatList.length - 1 - index}` : chatNames[chatId] }
-          {chatId === selectedChatId && (
+          {chatNames[chat._id] === 'Chat' ? `Chat ${chatList.length - 1 - index}` : chatNames[chat._id] }
+          {chat._id === selectedChatId && (
             <div className="ml-auto">
               <button
                 className="text-gray-300 hover:text-gray-400 ml-2"
-                onClick={(e) => handleEditChatName(e, chatId)}
+                onClick={(e) => handleEditChatName(e, chat._id)}
               >
                 <PencilIcon className="h-4 w-4" />
               </button>
 
               <button
                 className="text-red-500 hover:text-red-600 ml-2"
-                onClick={(e) => handleDeleteChat(e, chatId)}
+                onClick={(e) => handleDeleteChat(e, chat._id)}
               >
                 <TrashIcon className="h-4 w-4" />
               </button>

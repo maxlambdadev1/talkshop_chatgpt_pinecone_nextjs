@@ -40,9 +40,8 @@ export default function Home() {
   const [userEmail, setUserEmail] = useState<string>('');
   const [userName, setUserName] = useState<string>('');
   const [userImage, setUserImage] = useState<string>('');
-  const [userRole, setUserRole] = useState<string>('user');  
-  const [allFiles, setAllFiles] = useState<string[]>([]);
-  const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
+  const [userRole, setUserRole] = useState<string>('user'); 
+  const [selectedNamespaces, setSelectedNamespaces] = useState<any[]>([]); 
 
   useEffect(() => {
     if (!!userInfo && !!userInfo.role ) setUserRole(userInfo.role);
@@ -50,8 +49,6 @@ export default function Home() {
 
   const {
     namespaces,
-    selectedNamespace,
-    setSelectedNamespace,
     isLoadingNamespaces,
   } = useNamespaces();
 
@@ -63,37 +60,9 @@ export default function Home() {
     deleteChat,
     chatNames,
     updateChatName,
-    filteredChatList,
     getConversation,
-  } = useChats(selectedNamespace.realName, userEmail);
+  } = useChats(userEmail);
   
-  const getFiles = async (selectedNamespace : any) => {
-    try {
-      const response = await fetch(`/api/getFiles?namespace=${selectedNamespace.realName}`);
-      const data = await response.json();
-
-      if (response.ok) {
-        setAllFiles(data.map((file:any) => file.name));
-        setSelectedFiles(data.map((file:any) => file.name));
-      } else {
-        setAllFiles([]);
-      }
-    } catch (err) {
-      console.log('getting files error', err);
-    }
-  }
-
-  useEffect(() => {
-    if (!!selectedNamespace) {
-      getFiles(selectedNamespace);
-    }
-  }, [selectedNamespace]);
-  
-  useEffect(() => {
-    console.log('selectedFiles', selectedFiles)
-  }, [selectedFiles]);
-
-
   const userHasNamespaces = namespaces.length > 0;
 
   const [loading, setLoading] = useState<boolean>(false);
@@ -202,24 +171,13 @@ export default function Home() {
   }, [status, session]);
 
   useEffect(() => {
-    if (!!selectedNamespace.realName && chatList.length > 0 && !selectedChatId) {
-      setSelectedChatId(chatList[0].chatId);
+    if (chatList.length > 0 && !selectedChatId) {
+      setSelectedChatId(chatList[0]._id);
     }
   }, [
-    selectedNamespace,
     chatList,
     selectedChatId,
     setSelectedChatId,
-  ]);
-
-  useEffect(() => {
-    if (chatList.length > 0) {
-      setSelectedChatId(chatList[chatList.length - 1].chatId);
-    }
-  }, [
-    selectedNamespace,
-    setSelectedChatId,
-    chatList,
   ]);
 
   useEffect(() => {
@@ -268,11 +226,10 @@ export default function Home() {
       body: JSON.stringify({
         question,
         chatId: selectedChatId,
-        selectedNamespace : selectedNamespace.realName,
+        selectedNamespaces : selectedNamespaces,
         returnSourceDocuments,
         modelTemperature,
         userEmail,
-        selectedFiles
       }),
     });
 
@@ -326,7 +283,7 @@ export default function Home() {
     }
   };
 
-  const nameSpaceHasChats = filteredChatList.length > 0;
+  const nameSpaceHasChats = chatList.length > 0;
 
   return (
     <>
@@ -383,12 +340,8 @@ export default function Home() {
                     <div className="flex h-16 shrink-0 items-center"></div>
                     <SidebarList
                       createChat={createChat}
-                      selectedNamespace={selectedNamespace}
-                      setSelectedNamespace={setSelectedNamespace}
                       namespaces={namespaces}
-                      filteredChatList={filteredChatList.map(
-                        (chat) => chat.chatId,
-                      )}
+                      chatList={chatList}
                       selectedChatId={selectedChatId}
                       setSelectedChatId={setSelectedChatId}
                       setConversation={setConversation}
@@ -401,9 +354,6 @@ export default function Home() {
                       setModelTemperature={setModelTemperature}
                       nameSpaceHasChats={nameSpaceHasChats}
                       isLoadingNamespaces={isLoadingNamespaces}
-                      allFiles = {allFiles}
-                      selectedFiles = {selectedFiles}
-                      setSelectedFiles = {setSelectedFiles}
                     />
                   </div>
                 </Dialog.Panel>
@@ -417,10 +367,8 @@ export default function Home() {
             <div className="flex h-8 shrink-0 items-center"></div>
             <SidebarList
               createChat={createChat}
-              selectedNamespace={selectedNamespace}
-              setSelectedNamespace={setSelectedNamespace}
               namespaces={namespaces}
-              filteredChatList={filteredChatList.map((chat) => chat.chatId)}
+              chatList={chatList}
               selectedChatId={selectedChatId}
               setSelectedChatId={setSelectedChatId}
               setConversation={setConversation}
@@ -433,9 +381,6 @@ export default function Home() {
               setModelTemperature={setModelTemperature}
               nameSpaceHasChats={nameSpaceHasChats}
               isLoadingNamespaces={isLoadingNamespaces}
-              allFiles = {allFiles}
-              selectedFiles = {selectedFiles}
-              setSelectedFiles = {setSelectedFiles}
             />
           </div>
         </div>
@@ -451,7 +396,7 @@ export default function Home() {
           />
 
           <main className="flex flex-col">
-            {!!selectedNamespace?.realName && nameSpaceHasChats ? (
+            { nameSpaceHasChats ? (
               <div className="flex-grow pb-48">
                 <div className="h-full">
                   <MessageList
@@ -463,13 +408,12 @@ export default function Home() {
             ) : (
               <EmptyState
                 nameSpaceHasChats={nameSpaceHasChats}
-                selectedNamespace={selectedNamespace}
                 userHasNamespaces={userHasNamespaces}
                 userRole={ userRole}
               />
             )}
 
-            {nameSpaceHasChats && !!selectedNamespace?.realName && (
+            {nameSpaceHasChats && namespaces.length > 0 && (
               <div className="fixed w-full bottom-0 flex bg-gradient-to-t from-gray-800 to-gray-800/0 justify-center lg:pr-72">
                 <ChatForm
                   loading={loading}
@@ -479,6 +423,9 @@ export default function Home() {
                   handleEnter={handleEnter}
                   handleSubmit={handleSubmit}
                   setQuery={setQuery}
+                  namespaces={namespaces}
+                  selectedNamespaces={selectedNamespaces}
+                  setSelectedNamespaces={setSelectedNamespaces}
                 />
               </div>
             )}

@@ -2,20 +2,18 @@ import React from 'react';
 import { useRouter } from 'next/router';
 interface EmptyStateProps {
   nameSpaceHasChats: boolean;
-  selectedNamespace: any;
   userHasNamespaces: boolean;
   userRole: string;
 }
 
 const EmptyState: React.FC<EmptyStateProps> = ({
   nameSpaceHasChats,
-  selectedNamespace,
   userHasNamespaces,
   userRole
 }) => {
   const router = useRouter();
 
-  const selectNamespaceMessage = 'Select a namespace to display chats';
+  const selectNamespaceMessage = 'Select  namespaces to display chats';
   const noNamespacesMessage = 'You currently have no namespaces.';
 
   return (
@@ -23,8 +21,8 @@ const EmptyState: React.FC<EmptyStateProps> = ({
       <h1 className="text-xl md:text-3xl text-center font-semibold text-gray-100 mb-6">
         {!userHasNamespaces
           ? noNamespacesMessage
-          : selectedNamespace?.realName && !nameSpaceHasChats
-          ? 'Create a new chat to get started.'
+          : !nameSpaceHasChats
+          ? 'Create a new chat to get started'
           : selectNamespaceMessage}
       </h1>
       {!userHasNamespaces && userRole === 'admin' && (

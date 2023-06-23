@@ -1,18 +1,16 @@
 import { ConversationMessage } from '@/types/ConversationMessage';
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { v4 as uuidv4 } from 'uuid';
-import { useLocalStorage } from '../libs/localStorage';
 
-export function useChats(namespace: string, userEmail: string) {
+export function useChats(userEmail: string) {
   const [chatList, setChatList] = useState<any[]>([]);
   const [chatNames, setChatNames] = useState<any>({});
   const [selectedChatId, setSelectedChatId] = useState<string>('');
 
   useEffect(() => {
-    const fetchChatList = async (namespace: string, userEmail: string) => {
+    const fetchChatList = async (userEmail: string) => {
       try {
         const response = await fetch(
-          `/api/chat/all?namespace=${namespace}&userEmail=${userEmail}`,
+          `/api/chat/all?&userEmail=${userEmail}`,
           {
             method: 'GET',
             headers: {
@@ -31,22 +29,22 @@ export function useChats(namespace: string, userEmail: string) {
         console.error(error.message);
       }
     };
-    if (!!namespace && !!userEmail) fetchChatList(namespace, userEmail);
-  }, [namespace, userEmail]);
+    if (!!userEmail) fetchChatList(userEmail);
+  }, [userEmail]);
 
   useEffect(() => {
     if (!!chatList && chatList.length > 0) {
       const temp : any = {};
-      chatList.forEach((chat : any) => {temp[chat.chatId] = chat?.title})
+      chatList.forEach((chat : any) => {temp[chat._id] = chat?.title})
       setChatNames(temp);
     }
   }, [chatList]);
 
   const getConversation = async (chatId: string) => {
-      const fetchMessages = async (chatId : string, namespace: string, userEmail: string) => {
+      const fetchMessages = async (chatId : string) => {
         try {
           const response = await fetch(
-            `/api/message/all?chatId=${chatId}&namespace=${namespace}&userEmail=${userEmail}`,
+            `/api/message/all?chatId=${chatId}`,
             {
               method: 'GET',
               headers: {
@@ -63,8 +61,8 @@ export function useChats(namespace: string, userEmail: string) {
           return [];
         }
       };
-      if (!!chatId && !!namespace && !!userEmail) {
-        const messages  = fetchMessages(chatId, namespace, userEmail);
+      if (!!chatId) {
+        const messages  = fetchMessages(chatId);
         return messages;
       } else  return [];
     };
@@ -77,7 +75,7 @@ export function useChats(namespace: string, userEmail: string) {
           'Content-Type': 'application/json',
         },
         body : JSON.stringify({
-          chatId , title : newChatName, namespace 
+          chatId , title : newChatName
         })
       })
       const res = response.json();
@@ -93,7 +91,6 @@ export function useChats(namespace: string, userEmail: string) {
   }
 
   async function createChat(title : string) {
-    const chatId = uuidv4();        
     try {
       const response = await fetch(
         `/api/chat/create`,
@@ -103,16 +100,18 @@ export function useChats(namespace: string, userEmail: string) {
             'Content-Type': 'application/json',
           },
           body : JSON.stringify({
-            chatId , title, namespace, userEmail 
+            title,  userEmail 
           })
         },
       );
       const data = await response.json();
 
       if (response.ok) {
-        const updatedChatList = [...chatList, {...data }];
+        const updatedChatList = [{...data }, ...chatList];
         setChatList(updatedChatList);
-        return chatId;
+        setSelectedChatId(data._id);
+        console.log('created chat', data);
+        return data;
       } else {
         console.error(data.error);
       }
@@ -130,25 +129,25 @@ export function useChats(namespace: string, userEmail: string) {
           'Content-Type': 'application/json',
         },
         body : JSON.stringify({
-          chatId : chatIdToDelete ,  namespace 
+          chatId : chatIdToDelete  
         })
       })
 
       if (response.ok) {
         const updatedChatList:any = chatList.filter(
-          (chat : any) => chat?.chatId !== chatIdToDelete,
+          (chat : any) => chat?._id !== chatIdToDelete,
         );
         setChatList(updatedChatList);
     
         if (chatIdToDelete === selectedChatId) {
           const deletedChatIndex = chatList.findIndex(
-            (chat : any) => chat.chatId === chatIdToDelete,
+            (chat : any) => chat._id === chatIdToDelete,
           );
           let newSelectedChatId = '';
           if (updatedChatList[deletedChatIndex]) {
-            newSelectedChatId = updatedChatList[deletedChatIndex].chatId;
+            newSelectedChatId = updatedChatList[deletedChatIndex]._id;
           } else if (deletedChatIndex > 0) {
-            newSelectedChatId = updatedChatList[deletedChatIndex - 1].chatId;
+            newSelectedChatId = updatedChatList[deletedChatIndex - 1]._id;
           }
           setSelectedChatId(newSelectedChatId);
         }
@@ -158,10 +157,6 @@ export function useChats(namespace: string, userEmail: string) {
     }
   }
 
-  const filteredChatList = chatList.filter(
-    (chat) => chat.namespace === namespace,
-  );
-
   return {
     chatList,
     selectedChatId,
@@ -170,7 +165,6 @@ export function useChats(namespace: string, userEmail: string) {
     deleteChat,
     chatNames,
     updateChatName,
-    filteredChatList,
     getConversation,
   };
 }

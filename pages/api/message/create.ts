@@ -19,7 +19,6 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
-
   // const session = await getSession({ req });
   // if (!session) {
   //   return res.status(401).json({ message: 'Unauthorized' });
@@ -29,11 +28,10 @@ export default async function handler(
   const {
     question,
     chatId,
-    selectedNamespace,
+    selectedNamespaces,
     returnSourceDocuments,
     modelTemperature,
     userEmail,
-    selectedFiles
   } = req.body;
 
   const openAIapiKey = process.env.OPENAI_API_KEY;
@@ -59,8 +57,8 @@ export default async function handler(
     return res.status(400).json({ message: 'No question in the request' });
   }
 
-  if (selectedFiles.length <= 0) {
-    return res.status(400).json({ message: 'Please include the files' });
+  if (selectedNamespaces.length <= 0) {
+    return res.status(400).json({ message: 'Please include the namespaces' });
   }
 
   if (!pinecone) {
@@ -71,19 +69,12 @@ export default async function handler(
   try {
     const index = pinecone.Index(targetIndex as string);
 
-    // let filesInfo = await SFile.find({
-    //   namespace: selectedNamespace,
-    // }).sort({ name: 1 }); //asc
-    // let fileNames = filesInfo.map((item: any) => item.name);
-    let fileNames = selectedFiles.sort();
-
-    const response1 = [];  
-    for (let i = 0; i < fileNames.length; i++) {
-      let fileName = fileNames[i];
+    const response1 = [];
+    for (let i = 0; i < selectedNamespaces.length; i++) {
+      let namespace = selectedNamespaces[i];
 
       const messages = await Message.find({
-        chatId,
-        namespace: selectedNamespace,
+        chatId
       });
       const pairedMessages = [];
       for (let i = 0; i < messages.length; i += 2) {
@@ -97,34 +88,32 @@ export default async function handler(
         {
           pineconeIndex: index,
           textKey: 'text',
-          namespace: selectedNamespace,
-          filter: {
-            source: {
-              $in: [`${prefixProd}${fileName}`, `${prefixDev}${fileName}`],
-            },
-          },
+          namespace: namespace.realName,
         },
       );
 
       // Provide your response in markdown format.`;
-      let qa_prompt = `You are an intelligent AI assistant designed to interpret and answer questions and instructions based on specific provided documents. The context from these documents has been processed and made accessible to you. 
+      let qa_prompt = `You are an intelligent AI assistant designed to interpret and answer questions and instructions based on specific provided documents. The context from these documents has been processed fully and made accessible to you. 
   
-  Your mission is to generate answers that are accurate, succinct, and comprehensive, drawing upon the information contained in the context of the documents. If the answer isn't readily found in the documents, you should make use of your training data and understood context to infer and provide the most plausible response.
-  
-  You are also capable of evaluating, comparing and providing opinions based on the content of these documents. Hence, if asked to compare or analyze the documents, use your AI understanding to deliver an insightful response.
-  
-  Here is the context from the documents:
-  
-  Context: {context}
-  
+      Your mission is to generate answers that are accurate and comprehensive, drawing upon the information contained in the context of the documents. 
+    You have to analyze all context and get the correct answer using AI.
+    If the answer isn't readily found in the documents, you should make use of your training data and understood context to infer and provide the most plausible response.
+      
+      You are also capable of evaluating, comparing and providing opinions based on the content of these documents. Hence, if asked to compare or analyze the documents, use your AI understanding to deliver an insightful response.
+      
+      Here is the context from the documents:
+      
+      Context: {context}
+      
   Here is the user's question:
   
   Question: {question}
   
-  This is the fileName that contain the documents : ${fileName}
-  
-  Provide your response as following styles finally : 
-  ${fileName} :  ...
+  This is the namespace that contain the documents : ${namespace.name}
+
+  Provide your response as following styles finally in markdown format : 
+  In ${namespace.name} (display the namespace as big font) :  
+  ...
   
   Provide your response in markdown format.`;
 
@@ -132,7 +121,7 @@ export default async function handler(
         pairedMessages.length > 0
           ? pairedMessages.map((item) => {
               let botAns = item[1].detail.filter(
-                (item1) => item1.fileName === fileName,
+                (item1) => item1.namespace === namespace.realName,
               );
               let botText = '';
               if (botAns.length > 0) {
@@ -143,7 +132,7 @@ export default async function handler(
                 botText,
               ];
             })
-          : [];   
+          : [];
 
       const chain = makeChain(
         vectorStore,
@@ -155,18 +144,21 @@ export default async function handler(
       response1[i] = chain.call({
         question: sanitizedQuestion,
         chat_history: history || [],
-        fileName: fileName,
       });
     }
     const response = await Promise.all([...response1]);
     const text = response
       .map((item) => item.text)
       .reduce((total, item) => total + '\n\r' + item);
-    const sourceDocs = returnSourceDocuments  ? response
-      .map((item) => { return !!item.sourceDocuments ? item.sourceDocuments : []})
-      .reduce((total, item) => total.concat(item)) : [];
+    const sourceDocs = returnSourceDocuments
+      ? response
+          .map((item) => {
+            return !!item.sourceDocuments ? item.sourceDocuments : [];
+          })
+          .reduce((total, item) => total.concat(item))
+      : [];
     const detail = response.map((item, index) => ({
-      fileName: fileNames[index],
+      namespace: selectedNamespaces[index].realName,
       text: item.text,
     }));
 
@@ -175,7 +167,7 @@ export default async function handler(
       sender: 'user',
       content: sanitizedQuestion,
       chatId: chatId,
-      namespace: selectedNamespace,
+      namespaces: selectedNamespaces,
       userEmail: userEmail,
     });
     await userMessage.save();
@@ -184,10 +176,10 @@ export default async function handler(
       sender: 'bot',
       content: text.toString(),
       chatId: chatId,
-      namespace: selectedNamespace,
+      namespaces: selectedNamespaces,
       userEmail: userEmail,
       sourceDocs: sourceDocs,
-      detail : detail
+      detail: detail,
     });
     await botMessage.save();
 

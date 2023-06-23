@@ -8,7 +8,7 @@ export interface IDocument {
 }
 
 export interface IDetail {
-  fileName: string;
+  namespace: string;
   text: string;
 }
 
@@ -16,7 +16,7 @@ export interface IMessage extends Document {
   sender: string;
   content: string;
   chatId: string;
-  namespace: string;
+  namespaces: string[];
   sourceDocs?: IDocument[];
   detail : IDetail[];
 }
@@ -35,10 +35,7 @@ const MessageSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    namespace: {
-      type: String,
-      required: true,
-    },
+    namespaces: [],
     userEmail: {
       type: String,
       required: true,
@@ -53,7 +50,7 @@ const MessageSchema = new mongoose.Schema(
     ],
     detail: [
       {
-        fileName : String,
+        namespace : String,
         text : String
       }
     ] ,
