@@ -9,6 +9,7 @@ export interface IDocument {
 
 export interface IDetail {
   namespace: string;
+  fileName: string;
   text: string;
 }
 
@@ -51,6 +52,7 @@ const MessageSchema = new mongoose.Schema(
     detail: [
       {
         namespace : String,
+        fileName : String,
         text : String
       }
     ] ,
