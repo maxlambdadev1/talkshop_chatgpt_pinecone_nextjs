@@ -8,15 +8,30 @@ import {
   AccordionTrigger,
 } from '@/components/other/Accordion';
 import remarkGfm from 'remark-gfm';
+// import rehypeKatex from 'rehype-katex';
+import rehypeRaw from 'rehype-raw'
 import { Message } from '@/types';
 
 interface MessageListProps {
   messages: Message[];
   loading: boolean;
+  highlightItems : string[];
   // messageListRef: React.RefObject<HTMLDivElement>;
 }
 
-function MessageList({ messages, loading }: MessageListProps) {
+function MessageList({ messages, loading, highlightItems }: MessageListProps) {
+
+  const replacePromptToHighlight = (message : string) => {
+    let message1 =  message;
+    highlightItems.forEach(item => {
+      if (!!item) {
+        let replacement = `<span class='bg-purple-800'>${item}</span>`
+        message1 = message1.replace(item, replacement);
+      }
+    })
+    return message1;
+  }
+
   return (
     <>
       <div className="overflow-y-auto">
@@ -46,8 +61,10 @@ function MessageList({ messages, loading }: MessageListProps) {
                           linkTarget="_blank"
                           className="markdown text-xs sm:text-sm md:text-base leading-relaxed"
                           remarkPlugins={[remarkGfm]}
+                          rehypePlugins={[rehypeRaw]}
+                          // rehypePlugins={[rehypeKatex]}
                         >
-                          {message.message}
+                          {replacePromptToHighlight(message.message)}
                         </ReactMarkdown>
                       </div>
                     </div>

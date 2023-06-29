@@ -13,9 +13,11 @@ type ChatFormProps = {
   handleEnter: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   handleSubmit: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
   setQuery: (query: string) => void;
-  namespaces : any[];
-  selectedNamespaces : any[];
-  setSelectedNamespaces : React.Dispatch<React.SetStateAction<any[]>>;
+  namespaces: any[];
+  promptList: any[];
+  selectedNamespaces: any[];
+  setSelectedNamespaces: React.Dispatch<React.SetStateAction<any[]>>;
+  setHighlightItems: React.Dispatch<React.SetStateAction<string[]>>;
 };
 
 const ChatForm = ({
@@ -26,8 +28,10 @@ const ChatForm = ({
   handleSubmit,
   setQuery,
   namespaces,
+  promptList,
   selectedNamespaces,
-  setSelectedNamespaces
+  setSelectedNamespaces,
+  setHighlightItems
 }: ChatFormProps) => {
   const otherRef = useRef<HTMLTextAreaElement>(null);
   const submitRef = useRef<HTMLButtonElement>(null);
@@ -65,17 +69,17 @@ const ChatForm = ({
   useEffect(() => {
     getDataCategories();
   }, []);
-  
+
   useEffect(() => {
     if (namespaces.length > 0) {
-        const tempData = namespaces.map((item: any) => ({ value: item.realName, label: item.name }))
-        setSelectData(tempData);
+      const tempData = namespaces.map((item: any) => ({ value: item.realName, label: item.name }))
+      setSelectData(tempData);
     }
   }, [namespaces]);
 
   useEffect(() => {
     if (selectData.length > 0) {
-        setSelectedData([selectData[0]]);
+      setSelectedData([selectData[0]]);
     }
   }, [selectData]);
 
@@ -90,7 +94,7 @@ const ChatForm = ({
     // setPrompts([]);
     // setSelectCategories(arr1)
 
-    const arr:any[] = [];
+    const arr: any[] = [];
     selectedData.forEach((item: any) => {
       let value = item.value;
       const arr1 = namespaces.filter((item) => item.realName === value);
@@ -175,12 +179,35 @@ const ChatForm = ({
     })
   };
 
+  const onclickPrompt = (prompt : any) => {
+    let str = prompt.prompt;
+
+    const startDelimiter = '{{';
+    const endDelimiter = '}}';
+    let startIndex = 0;
+    let extractedTexts = [];
+
+    while (startIndex !== -1) {
+      startIndex = str.indexOf(startDelimiter, startIndex);
+
+      if (startIndex !== -1) {
+        const endIndex = str.indexOf(endDelimiter, startIndex);
+        const extractedText = str.substring(startIndex + startDelimiter.length, endIndex).trim();
+        extractedTexts.push(extractedText);
+        startIndex = endIndex + endDelimiter.length;
+      }
+    }
+    // console.log('extractedTexts', extractedTexts)
+    setHighlightItems(extractedTexts);
+    submitPrompt(prompt.name)
+  }
+
   return (
     <div className='w-full'>
       <div className='w-full max-w-4xl m-auto px-4 sm:px-8'>
         <div className='w-full'>
           <div className='flex'>
-            <div className='w-full w-1/2 sm:w-72'>
+            <div className='w-full sm:w-96 sm:mr-2'>
               <Select
                 value={selectedData}
                 onChange={(selectedData: any) => setSelectedData(selectedData)}
@@ -190,7 +217,7 @@ const ChatForm = ({
                 styles={customStyles}
               />
             </div>
-            <div className='w-full w-1/2 ml-2 sm:w-72 sm:ml-4'>
+            {/* <div className='w-full w-1/2 ml-2 sm:w-72 sm:ml-4'>
               <Select
                 value={selectedCategory}
                 onChange={(selectedCategory: any) => {setSelectedCategory(selectedCategory); }}
@@ -198,20 +225,20 @@ const ChatForm = ({
                 menuPlacement='top'
                 styles={customStyles}
               />
-            </div>
+            </div> */}
+            {selectedNamespaces.length > 0 && !!promptList && promptList.length > 0 && (
+              <div className=''>
+                {promptList.map((prompt: any, index: number) => (
+                  <button key={index}
+                    className='px-3 py-1 mb-1 mr-2 bg-gray-700/50 font-md text-gray-300 rounded-2xl hover:text-gray-100'
+                    onClick={() => onclickPrompt(prompt)}
+                  >
+                    {prompt.prompt}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
-          {!!prompts && prompts.length > 0 && (
-            <div className='pt-3'>
-              {prompts && prompts.map((prompt: any, index: number) => (
-                <button key={index}
-                  className='px-3 py-1 mr-2 bg-gray-700/50 font-md text-gray-300 rounded-2xl hover:opacity-80'
-                  onClick={() => submitPrompt(prompt.prompt)}
-                >
-                  {prompt.prompt}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
         <form
           onSubmit={handleSubmit}

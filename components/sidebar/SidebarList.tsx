@@ -43,7 +43,8 @@ const SidebarList: React.FC<SidebarListProps> = ({
 }) => {
 
   return (
-    <nav className="flex flex-col h-full">
+    <nav className="flex flex-col h-full pt-20 sm:p-0"
+    >
       <div>
           <div className="px-4 space-y-3 mb-4">
             <SourceDocumentsToggle

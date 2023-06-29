@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bars3Icon } from '@heroicons/react/24/outline';
+import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import { Cog6ToothIcon } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/router';
 import ProfileDropdown from '../other/ProfileDropdown';
@@ -8,12 +8,14 @@ import { signOut } from 'next-auth/react';
 interface HeaderProps {
   setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
   sidebarOpen: boolean;
+  setSidebarRightOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  sidebarRightOpen: boolean;
   userImage: string;
   userName: string;
   userRole: string;
 }
 
-const Header: React.FC<HeaderProps> = ({ setSidebarOpen, sidebarOpen, userImage, userName, userRole }) => {
+const Header: React.FC<HeaderProps> = ({ setSidebarOpen, sidebarOpen, setSidebarRightOpen, sidebarRightOpen, userImage, userName, userRole }) => {
   const defaultUserImage = '/images/user.png';
   const defaultUserName = 'User';
 
@@ -26,7 +28,11 @@ const Header: React.FC<HeaderProps> = ({ setSidebarOpen, sidebarOpen, userImage,
         onClick={() => { console.log('sidebarOpen', sidebarOpen); setSidebarOpen(!sidebarOpen) }}
       >
         <span className="sr-only">Open sidebar</span>
-        <Bars3Icon className="h-6 w-6" aria-hidden="true" />
+        {!!sidebarOpen ? (
+          <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+        ) : (
+          <Bars3Icon className="h-6 w-6" aria-hidden="true" />
+        )}
       </button>
 
       <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6 items-center">
@@ -34,7 +40,7 @@ const Header: React.FC<HeaderProps> = ({ setSidebarOpen, sidebarOpen, userImage,
           Talk Shop
         </span>
       </div>
-      { userRole === 'admin' && (
+      {userRole === 'admin' && (
         <div className="flex-shrink-0" onClick={() => router.push('/namespace/create')}>
           <button
             type="button"
@@ -60,6 +66,18 @@ const Header: React.FC<HeaderProps> = ({ setSidebarOpen, sidebarOpen, userImage,
           signOut={signOut}
         />
       </div>
+      <button
+        type="button"
+        className="-m-2.5 p-2.5 text-gray-700 "
+        onClick={() => { console.log('sidebarOpen', sidebarOpen); setSidebarRightOpen(!sidebarOpen) }}
+      >
+        <span className="sr-only">Open sidebar</span>
+        {!!sidebarRightOpen ? (
+          <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+        ) : (
+          <Bars3Icon className="h-6 w-6" aria-hidden="true" />
+        )}
+      </button>
     </div>
   );
 };

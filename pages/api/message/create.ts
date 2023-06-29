@@ -124,7 +124,7 @@ export default async function handler(
     
     Question: {question}
     
-    This is the namespace that contain the documents : ${fileName}
+    This is the filename that contain the documents : ${fileName}
   
     Provide your response as following styles finally in markdown format : 
     In ${fileName}(display the filename as big font), ...
