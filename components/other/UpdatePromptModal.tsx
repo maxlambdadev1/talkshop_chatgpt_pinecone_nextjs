@@ -1,18 +1,27 @@
 import { Fragment, useState, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
+import { useDropzone } from 'react-dropzone';
+import { TrashIcon } from '@heroicons/react/20/solid';
+import Image from 'next/image';
 
 type Props = {
   open: boolean;
-  prompt: any;
-  updatePrompt: (promptId: string, newPrompt: any) => Promise<any>;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  prompt: any;
+  updatePrompt: (newPrompt: any, image: any) => Promise<any>;
+  deleteImageFromPrompt: (promptId : string) => Promise<any>;
 };
+const MAX_FILE_SIZE = 4.5 * 1024 * 1024; // 4.5MB in bytes
 
-function UpdatePromptModal({ open, setOpen, prompt, updatePrompt }: Props) {
+function UpdatePromptModal({ open, setOpen, prompt, updatePrompt, deleteImageFromPrompt }: Props) {
   const [promptId, setPromptId] = useState<string>('');
   const [name, setName] = useState<string>('');
   const [description, setDescription] = useState<string>('');
   const [promptText, setPromptText] = useState<string>('');
+  const [image, setImage] = useState<string>('');
+
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [uploadError, setUploadError] = useState<string>('');
 
   useEffect(() => {
     if (!!prompt) {
@@ -20,22 +29,63 @@ function UpdatePromptModal({ open, setOpen, prompt, updatePrompt }: Props) {
       setDescription(prompt.description);
       setPromptText(prompt.prompt);
       setPromptId(prompt._id);
+      if (prompt.image) setImage(`/images/${prompt?.image}`);
+      else setImage('')
     }
   }, [prompt]);
+
+
+  const { getRootProps, getInputProps } = useDropzone({
+    noClick: true,
+    noKeyboard: true,
+    onDrop: (selectedFiles: File[]) => {
+      let totalSize = selectedFiles.reduce((acc, file) => acc + file.size, 0);
+      if (totalSize > MAX_FILE_SIZE) {
+        setSelectedFiles([]);
+        setUploadError('Please select the files less than 4.5MB totally.')
+      } else {
+        setSelectedFiles(selectedFiles);
+        setUploadError('')
+      }
+    },
+    multiple: false,
+    accept: {
+      mimetypes: [
+        'image/png', 'image/gif', 'image/bmp', 'image/jpeg', 'image/webp'
+      ],
+      extensions: ['png', 'gif', 'bmp', 'jpeg', 'jpg', 'webp'],
+    },
+    maxFiles: 10,
+  });
+
+  useEffect(() => {
+    if (!open) {
+      setSelectedFiles([]);
+    }
+  }, [open])
 
   const onUpdatePrompt = async () => {
     if (!!promptId && !!name) {
       const newPrompt: any = {};
+      newPrompt.promptId = promptId;
       newPrompt.name = name;
       newPrompt.description = description;
       newPrompt.prompt = promptText;
+      const file = selectedFiles.length > 0 ? selectedFiles[0] : null;
       try {
-        console.log('updatePrompt', promptId, newPrompt);
-        await updatePrompt(promptId, newPrompt);
+        console.log('updatePrompt', newPrompt, file);
+        await updatePrompt(newPrompt, file);
         setOpen(false);
       } catch (err) {
         console.log('error', err);
       }
+    }
+  }
+
+  const onDeleteImageFromPrompt = async () => {
+    if (!!promptId) {
+      await deleteImageFromPrompt(promptId);
+      setImage('');
     }
   }
 
@@ -87,6 +137,61 @@ function UpdatePromptModal({ open, setOpen, prompt, updatePrompt }: Props) {
                       placeholder='Prompt content. Use {{}} to denote a variable. Ex: {{name}} is a {{adjective}} {{noun}}'
                       value={promptText} onChange={(e) => setPromptText(e.target.value)} />
                   </div>
+                  {!!image ? (
+                    <div className='flex justify-between mt-4'>
+                      <img src={image} alt='prompt image' className='max-h-24 w-5/6' />
+                      <button
+                        className="text-red-500 hover:text-red-600 ml-2"
+                        onClick={() => onDeleteImageFromPrompt()}
+                      >
+                        <TrashIcon className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <div
+                        className="mt-4 sm:mt-8 flex justify-center"
+                        {...getRootProps()}
+                      >
+                        {' '}
+                        <label className="relative block w-full rounded-lg border-2 border-dashed border-gray-300 p-1 sm:p-2 text-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 cursor-pointer">
+                          {' '}
+                          <svg
+                            className="mx-auto h-6 sm:h-8 w-6 sm:w-8 text-gray-400"
+                            stroke="currentColor"
+                            fill="none"
+                            viewBox="0 0 48 48"
+                            aria-hidden="true"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M8 14v20c0 4.418 7.163 8 16 8 1.381 0 2.721-.087 4-.252M8 14c0 4.418 7.163 8 16 8s16-3.582 16-8M8 14c0-4.418 7.163-8 16-8s16 3.582 16 8m0 0v14m0-4c0 4.418-7.163 8-16 8S8 28.418 8 24m32 10v6m0 0v6m0-6h6m-6 0h-6"
+                            />
+                          </svg>
+                          <input
+                            {...getInputProps({
+                              onClick: (event) => event.stopPropagation(),
+                            })}
+                          />
+                          <span className="mt-2 sm:mt-2 block text-xs sm:text-sm font-semibold text-gray-100">
+                            {selectedFiles.length > 0
+                              ? selectedFiles.map((file, index) => <p key={index}>{file.name}</p>)
+                              : 'Drag and drop or click to select Image to upload'}
+                          </span>
+                        </label>
+                      </div>
+                      {/* upload area */}
+                      {!!uploadError && (
+                        <div className="mt-4 sm:mt-8 flex justify-center mb-4">
+                          <div className="text-red-500 text-sm sm:text-base font-semibold">
+                            {uploadError}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
                 <div className="mt-5 sm:mt-6 flex justify-end">
                   <button

@@ -9,7 +9,8 @@ import SelectFilesModal from '@/components/other/SelectFilesModal';
 interface SidebarRightListProps {
   createPrompt: (title : string) => Promise<any>;
   deletePrompt: (promptId : string) => Promise<any>;
-  updatePrompt: (promptId: string, newPrompt: any) => Promise<any>;
+  updatePrompt: (newPrompt: any, image : any) => Promise<any>;
+  deleteImageFromPrompt: (promptId : string) => Promise<any>;
   promptList: any[];
   // returnSourceDocuments: boolean;
   // setReturnSourceDocuments: React.Dispatch<React.SetStateAction<boolean>>;
@@ -35,6 +36,7 @@ const SidebarRightList: React.FC<SidebarRightListProps> = ({
   createPrompt,
   deletePrompt,
   updatePrompt,
+  deleteImageFromPrompt,
   promptList,
   // setSelectedChatId,
   // setConversation,
@@ -66,6 +68,7 @@ const SidebarRightList: React.FC<SidebarRightListProps> = ({
               promptList={promptList}
               createPrompt={createPrompt}
               updatePrompt={updatePrompt}
+              deleteImageFromPrompt={deleteImageFromPrompt}
               deletePrompt={deletePrompt}
             />
           ) : (

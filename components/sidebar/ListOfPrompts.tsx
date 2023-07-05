@@ -11,11 +11,13 @@ const ListOfPrompts = ({
   createPrompt,
   updatePrompt,
   deletePrompt,
+  deleteImageFromPrompt
 }: {
   promptList: any[];
   createPrompt: (title: string) => Promise<any>;
   deletePrompt: (promptId: string) => Promise<any>;
-  updatePrompt: (promptId: string, newPrompt: any) => Promise<any>;
+  updatePrompt: (newPrompt: any, image : any) => Promise<any>;
+  deleteImageFromPrompt: (promptId : string) => Promise<any>;
 }) => {
 
   const [open, setOpen] = useState<boolean>(false);
@@ -79,6 +81,7 @@ const ListOfPrompts = ({
       <UpdatePromptModal
         prompt={prompt}
         updatePrompt={updatePrompt}
+        deleteImageFromPrompt={deleteImageFromPrompt}
         open={open}
         setOpen={setOpen}
       />

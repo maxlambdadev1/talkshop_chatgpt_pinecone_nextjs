@@ -3,7 +3,7 @@ import { useState, useMemo, useCallback, useEffect } from 'react';
 
 export function usePrompts(userEmail: string) {
   const [promptList, setPromptList] = useState<any[]>([]);
-  const [selectedPromptId, setSelectedPromptId] = useState<string>('');
+  const [selectedPrompt, setSelectedPrompt] = useState<any>({});
 
   useEffect(() => {
     const fetchPromptList = async (userEmail: string) => {
@@ -38,32 +38,65 @@ export function usePrompts(userEmail: string) {
     }
   }, [promptList]);
 
-   async function updatePrompt(promptId: string, newPrompt: any) {
+   async function updatePrompt(newPrompt: any, image : any) {
     try {
+      // console.log('image', image); return;
+      const formData = new FormData();
+      formData.append('promptId', newPrompt.promptId);
+      formData.append('name', newPrompt.name);
+      formData.append('description', newPrompt.description);
+      formData.append('prompt', newPrompt.prompt);
+      if (!!image) formData.append('image', image);
       const response = await fetch(`/api/prompt/update`, {
-        method : 'PUT', 
-        headers : {
-          'Content-Type': 'application/json',
-        },
-        body : JSON.stringify({
-          promptId , ...newPrompt
-        })
+        method : 'POST',
+        body : formData
       })
       const res = await response.json();
 
       if (response.ok) {
         const temp = promptList;
         temp.forEach(item => {
-          if (item._id === promptId) {
-            item.name = newPrompt.name;
-            item.description = newPrompt.description;
-            item.prompt = newPrompt.prompt;
+          if (item._id === res._id) {
+            item.name = res.name;
+            item.description = res.description;
+            item.prompt = res.prompt;
+            item.image = res.image;
           }
         })
         setPromptList(temp);
       }
     } catch(err) {
       console.log('error', err);
+    }
+  }
+  
+  const deleteImageFromPrompt = async (promptId :string) => {
+    if (!!promptId) {
+      try {
+        const response = await fetch(`/api/prompt/delete-image`, {
+          method : 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body : JSON.stringify({promptId})
+        });
+        const res = await response.json();
+  
+        if (response.ok) {
+          const temp = promptList;
+          temp.forEach(item => {
+            if (item._id === res._id) {
+              item.name = res.name;
+              item.description = res.description;
+              item.prompt = res.prompt;
+              item.image = res.image;
+            }
+          })
+          setPromptList(temp);
+        }
+      } catch(err) {
+        console.log('delete error', err)
+      }
     }
   }
 
@@ -123,10 +156,11 @@ export function usePrompts(userEmail: string) {
 
   return {
     promptList,
-    selectedPromptId,
-    setSelectedPromptId,
+    selectedPrompt,
+    setSelectedPrompt,
     createPrompt,
     deletePrompt,
     updatePrompt,
+    deleteImageFromPrompt
   };
 }

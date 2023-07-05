@@ -17,7 +17,6 @@ type ChatFormProps = {
   promptList: any[];
   selectedNamespaces: any[];
   setSelectedNamespaces: React.Dispatch<React.SetStateAction<any[]>>;
-  setHighlightItems: React.Dispatch<React.SetStateAction<string[]>>;
 };
 
 const ChatForm = ({
@@ -31,7 +30,6 @@ const ChatForm = ({
   promptList,
   selectedNamespaces,
   setSelectedNamespaces,
-  setHighlightItems
 }: ChatFormProps) => {
   const otherRef = useRef<HTMLTextAreaElement>(null);
   const submitRef = useRef<HTMLButtonElement>(null);
@@ -180,25 +178,6 @@ const ChatForm = ({
   };
 
   const onclickPrompt = (prompt : any) => {
-    let str = prompt.prompt;
-
-    const startDelimiter = '{{';
-    const endDelimiter = '}}';
-    let startIndex = 0;
-    let extractedTexts = [];
-
-    while (startIndex !== -1) {
-      startIndex = str.indexOf(startDelimiter, startIndex);
-
-      if (startIndex !== -1) {
-        const endIndex = str.indexOf(endDelimiter, startIndex);
-        const extractedText = str.substring(startIndex + startDelimiter.length, endIndex).trim();
-        extractedTexts.push(extractedText);
-        startIndex = endIndex + endDelimiter.length;
-      }
-    }
-    // console.log('extractedTexts', extractedTexts)
-    setHighlightItems(extractedTexts);
     submitPrompt(prompt.name)
   }
 
@@ -233,7 +212,7 @@ const ChatForm = ({
                     className='px-3 py-1 mb-1 mr-2 bg-gray-700/50 font-md text-gray-300 rounded-2xl hover:text-gray-100'
                     onClick={() => onclickPrompt(prompt)}
                   >
-                    {prompt.prompt}
+                    {prompt.name}
                   </button>
                 ))}
               </div>

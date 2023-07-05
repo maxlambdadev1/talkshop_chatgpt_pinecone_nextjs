@@ -4,6 +4,7 @@ export interface IPrompt extends Document {
   name : string;
   description : string;
   prompt : string;
+  image : string;
   userEmail: string;
 }
 
@@ -17,6 +18,9 @@ const PromptSchema = new mongoose.Schema(
       type: String,
     },
     prompt: {
+      type: String,
+    },
+    image: {
       type: String,
     },
     userEmail: {

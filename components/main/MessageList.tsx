@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import ReactMarkdown from 'react-markdown';
 import LoadingDots from '@/components/other/LoadingDots';
 import {
@@ -15,22 +15,59 @@ import { Message } from '@/types';
 interface MessageListProps {
   messages: Message[];
   loading: boolean;
-  highlightItems : string[];
+  promptList : any[];
   // messageListRef: React.RefObject<HTMLDivElement>;
 }
 
-function MessageList({ messages, loading, highlightItems }: MessageListProps) {
+function MessageList({ messages, loading,  promptList }: MessageListProps) {
 
-  const replacePromptToHighlight = (message : string) => {
-    let message1 =  message;
-    highlightItems.forEach(item => {
-      if (!!item) {
-        let replacement = `<span class='bg-purple-800'>${item}</span>`
-        message1 = message1.replace(item, replacement);
+  const replacePromptToHighlight = (index : number) => {
+    let message =  messages[index];
+    let prompt:any;
+    if (message.type === 'userMessage') {
+      let text = message.message;
+      prompt = promptList.find((prompt) => {
+        return (prompt.name === text)
+      });
+    } else { //apiMessage
+      if (index > 0 && index < messages.length) {
+        let prevUserMessage = messages[index - 1];
+        let text = prevUserMessage.message;
+        prompt = promptList.find((prompt) => {
+          return (prompt.name === text)
+        });
       }
-    })
-    return message1;
-  }
+    }
+    // console.log(`prompt${index}`, prompt)
+    if (!!prompt) {
+      let str:string = prompt.prompt;
+
+      const startDelimiter = '{{';
+      const endDelimiter = '}}';
+      let startIndex = 0;
+      let highlightItems:string[] = [];
+      while (startIndex !== -1) {
+        startIndex = str.indexOf(startDelimiter, startIndex);
+        if (startIndex !== -1) {
+          const endIndex = str.indexOf(endDelimiter, startIndex);
+          const extractedText = str.substring(startIndex + startDelimiter.length, endIndex).trim();
+          highlightItems.push(extractedText);
+          startIndex = endIndex + endDelimiter.length;
+        }
+      }
+      // console.log('highlightItems ', highlightItems)
+      let message1 = message.message;
+      highlightItems.forEach(item => {
+        if (!!item) {
+          let replacement = Math.floor((index - 1)%4 / 2) === 0 ? `<span class='bg-purple-800'>${item}</span>` : `<span class='bg-blue-800'>${item}</span>`
+          message1 = message1.replaceAll(item, replacement);
+        }
+      })
+      let image = '';
+      if (!!prompt && !!prompt.image && message.type === 'apiMessage') image = prompt.image;
+      return {message : message1, image};
+    } else return {message : message.message, image : ''}
+  } 
 
   return (
     <>
@@ -41,7 +78,7 @@ function MessageList({ messages, loading, highlightItems }: MessageListProps) {
             const messageClasses = ` ${
               isApiMessage ? 'bg-gray-700/50' : 'bg-gray-800'
             }`;
-
+            const replacedMessage = replacePromptToHighlight(index);
             return (
               <div key={`chatMessage-${index}`} className={messageClasses}>
                 <div className="flex items-center justify-start max-w-full sm:max-w-4xl  mx-auto overflow-hidden px-2 sm:px-4">
@@ -64,10 +101,15 @@ function MessageList({ messages, loading, highlightItems }: MessageListProps) {
                           rehypePlugins={[rehypeRaw]}
                           // rehypePlugins={[rehypeKatex]}
                         >
-                          {replacePromptToHighlight(message.message)}
+                          {replacedMessage.message}
                         </ReactMarkdown>
                       </div>
                     </div>
+                    { !!replacedMessage.image && (
+                      <div className='px-4 py-2 flex justify-center'>
+                        <img src={`/images/${replacedMessage.image}`} alt='prompt image' className='max-h-24 max-w-md' />
+                      </div>
+                    )}
                     {message.sourceDocs && (
                       <div
                         className="mt-4 mx-2 sm:mx-4"

@@ -31,8 +31,6 @@ export default function Home() {
   const [query, setQuery] = useState<string>('');
   const [modelTemperature, setModelTemperature] = useState<number>(0.5);
 
-  const [highlightItems, setHighlightItems] = useState<string[]>([]);
-
   const [userInfo, setUserInfo] = useLocalStorage<any>('userInfo', {});
 
   const { data: session, status } = useSession({
@@ -70,11 +68,12 @@ export default function Home() {
 
   const {
     promptList,
-    selectedPromptId,
-    setSelectedPromptId,
+    selectedPrompt,
+    setSelectedPrompt,
     createPrompt,
     deletePrompt,
     updatePrompt,
+    deleteImageFromPrompt
   } = usePrompts(userEmail);
 
   const userHasNamespaces = namespaces.length > 0;
@@ -294,7 +293,7 @@ export default function Home() {
       handleSubmit(e);
     } else if (e.key == 'Enter') {
       e.preventDefault();
-    }
+    } 
   };
 
   const nameSpaceHasChats = chatList.length > 0;
@@ -451,6 +450,7 @@ export default function Home() {
                       createPrompt={createPrompt}
                       updatePrompt={updatePrompt}
                       deletePrompt={deletePrompt}
+                      deleteImageFromPrompt={deleteImageFromPrompt}
                       promptList={promptList}
                       namespaces={namespaces}
                       isLoadingNamespaces={isLoadingNamespaces}
@@ -481,7 +481,7 @@ export default function Home() {
                   <MessageList
                     messages={messages.map(mapConversationMessageToMessage)}
                     loading={loading}
-                    highlightItems={highlightItems}
+                    promptList={promptList}
                   />
                 </div>
               </div>
@@ -497,7 +497,6 @@ export default function Home() {
               <div className="fixed w-full bottom-0 flex bg-gradient-to-t from-gray-800 to-gray-800/0 justify-center lg:pr-72">
                 <ChatForm
                   loading={loading}
-                  setHighlightItems={setHighlightItems}
                   promptList={promptList}
                   error={error}
                   query={query}
