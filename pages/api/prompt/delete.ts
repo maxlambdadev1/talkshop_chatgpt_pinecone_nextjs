@@ -2,9 +2,11 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import connectDB from '@/utils/mongoConnection';
 import mongoose from 'mongoose';
 import { PromptModel, IPrompt } from '@/models/Prompt';
+import fs from 'fs';
 
 const PromptModelTyped = PromptModel as mongoose.Model<IPrompt>;
 
+const filePath = process.env.NODE_ENV === 'production' ? '/public/images' : 'public/images';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'DELETE') {
@@ -21,8 +23,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   try {
     await connectDB();
+    
+    const prompt: any = await PromptModelTyped.findById(promptId);
 
-    await PromptModelTyped.findByIdAndDelete(promptId);
+    const image = fs.existsSync(`${filePath}/${prompt.image}`);
+    if (!!image) fs.unlinkSync(`${filePath}/${prompt.image}`);
+
+    await PromptModelTyped.findByIdAndDelete(promptId);    
 
     res.status(200).send('Prompt deleted successfully');
   } catch (error) {
