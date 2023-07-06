@@ -58,7 +58,7 @@ export default async function handler(req: any, res: any) {
       const result = await PromptModelTyped.findByIdAndUpdate(promptId,  {name, description, prompt, image }, {new: true});
       res.status(200).json(result);
     } catch (error) {
-      console.error('Error deleting chat:', error);
+      console.error('Error updating prompt:', error);
       res.status(500).send('Internal server error');
     }
     // return res.status(200).json({prompt, image})

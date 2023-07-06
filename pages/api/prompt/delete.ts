@@ -26,7 +26,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     
     const prompt: any = await PromptModelTyped.findById(promptId);
 
-    const image = fs.existsSync(`${filePath}/${prompt.image}`);
+    const image = !!prompt.image ? fs.existsSync(`${filePath}/${prompt.image}`) : false ; 
     if (!!image) fs.unlinkSync(`${filePath}/${prompt.image}`);
 
     await PromptModelTyped.findByIdAndDelete(promptId);    
