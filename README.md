@@ -16,8 +16,6 @@
 
 `+ LangChain and Pinecone`
 
-Note: If you'd like to set this up with google auth and mongoDB (as opposed to no auth and using local storage), have a look at this branch: [mongodb-and-auth](https://github.com/dissorial/doc-chatbot/tree/mongodb-and-auth). However, that repo is several important commits behind this one and lacks certain features, so keep that in mind.
-
 **Main chat area**
 ![Main chat area](public/images/main.png)
 
@@ -36,7 +34,7 @@ If you'd like to run this locally and deploy your own version, follow the steps 
 ### Clone the repo
 
 ```
-git clone https://github.com/dissorial/doc-chatbot.git
+git clone https://github.com/cf62/talkshop.git
 ```
 
 ---
