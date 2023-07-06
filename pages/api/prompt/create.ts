@@ -22,7 +22,8 @@ export default async function handler(
         name,
         userEmail,
         description : '',
-        prompt : ''
+        prompt : '',
+        image : ''
       });
 
       res.status(200).json(newPrompt);

@@ -71,6 +71,8 @@ function UpdatePromptModal({ open, setOpen, prompt, updatePrompt, deleteImageFro
       newPrompt.name = name;
       newPrompt.description = description;
       newPrompt.prompt = promptText;
+      let image1 = image;
+      newPrompt.image = image1.replace('/images/', '');
       const file = selectedFiles.length > 0 ? selectedFiles[0] : null;
       try {
         console.log('updatePrompt', newPrompt, file);

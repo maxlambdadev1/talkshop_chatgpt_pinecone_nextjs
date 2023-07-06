@@ -38,7 +38,7 @@ export function usePrompts(userEmail: string) {
     }
   }, [promptList]);
 
-   async function updatePrompt(newPrompt: any, image : any) {
+   async function updatePrompt(newPrompt: any, imageFile : any) {
     try {
       // console.log('image', image); return;
       const formData = new FormData();
@@ -46,7 +46,8 @@ export function usePrompts(userEmail: string) {
       formData.append('name', newPrompt.name);
       formData.append('description', newPrompt.description);
       formData.append('prompt', newPrompt.prompt);
-      if (!!image) formData.append('image', image);
+      formData.append('image', newPrompt.image);
+      if (!!imageFile) formData.append('imageFile', imageFile);
       const response = await fetch(`/api/prompt/update`, {
         method : 'POST',
         body : formData

@@ -39,7 +39,7 @@ export default async function handler(req: any, res: any) {
     res.status(405).send('Method not allowed');
     return;
   } 
-  upload.single('image')(req, res, async (err) => {
+  upload.single('imageFile')(req, res, async (err) => {
     if (!!err) {
       return res.status(400).json({ message: err });
     }
@@ -47,7 +47,7 @@ export default async function handler(req: any, res: any) {
     const name = req.body.name as string;
     const description = req.body.description as string;
     const prompt = req.body.prompt as string;
-    const image = req.file.filename as string;
+    const image = req.file ? req.file.filename : req.body.image as string;
   
     if (!promptId || !name) {
       res.status(400).send('Bad request: promptId , name are required');
