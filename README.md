@@ -21,10 +21,13 @@
 
 ---
 
-**Settings page**
+**Create namespace page**
 
-![Settings page](public/images/settings.png)
+![Create namespace page](public/images/create-namespace.png)
 
+**Update namespace page**
+
+![Update namespace page](public/images/update-namespace.png)
 ---
 
 ## Local setup & development
