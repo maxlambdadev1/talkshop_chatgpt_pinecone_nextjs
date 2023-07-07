@@ -2,9 +2,9 @@
 
 ## Features
 
-- Create **multiple** topics to chat about
-- Store **any number of files** to each topic
-- Create **any number of chats** (chat windows) for each topic
+- Create **multiple** namespaces to chat about
+- Store **any number of files** to each namespace
+- Create **any number of chats** (chat windows) for each namespace
 - Upload files, convert them to embeddings, store the embeddings in a namespace and upload to Pinecone, and delete Pinecone namespaces **from within the browser**
 - Store and automatically **retrieve chat history** for all chats with local storage
 - Supports `.pdf`, `.docx` and `.txt`
@@ -83,14 +83,6 @@ NODE_ENV=development
 ---
 
 ## Deployment
-
-Add these to your `.env` file:
-
-```
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=
-JWT_SECRET=
-```
 
 ### NextAuth Secret
 
