@@ -18,7 +18,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
 
   return (
     <div className="flex flex-col justify-center px-4 pt-24">
-      <h1 className="text-xl md:text-3xl text-center font-semibold text-gray-100 mb-6">
+      <h1 className="text-xl md:text-3xl text-center font-semibold text-gray-600 dark:text-gray-100 mb-6">
         {!userHasNamespaces
           ? noNamespacesMessage
           : !nameSpaceHasChats
@@ -29,7 +29,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
         <div className="flex justify-center">
           <button
             type="button"
-            className="rounded-md bg-indigo-500 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+            className="rounded-md bg-indigo-500 px-3.5 py-2.5 text-sm font-semibold text-gray-600 dark:text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
             onClick={() => router.push('/namespace/create')}
           >
             Create a namespace

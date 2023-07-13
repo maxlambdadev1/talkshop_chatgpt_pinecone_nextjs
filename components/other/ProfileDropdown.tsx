@@ -25,7 +25,7 @@ const ProfileDropdown = ({
         />
         <span className="hidden lg:flex lg:items-center">
           <span
-            className="ml-4 text-sm font-semibold leading-6 text-gray-100
+            className="ml-4 text-sm font-semibold leading-6 text-gray-600 dark:text-gray-100
                           whitespace-nowrap
                         "
             aria-hidden="true"
@@ -47,11 +47,11 @@ const ProfileDropdown = ({
         leaveFrom="transform opacity-100 scale-100"
         leaveTo="transform opacity-0 scale-95"
       >
-        <Menu.Items className="absolute right-0 sm:right-9 z-10 mt-2.5 w-32 origin-top-right rounded-md bg-gray-800 hover:bg-gray-800/50 py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none">
+        <Menu.Items className="absolute right-0 sm:right-9 z-10 mt-2.5 w-32 origin-top-right rounded-md bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-800/50 py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none">
           <Menu.Item>
             <button
               onClick={signOut}
-              className="block px-3 py-1 w-full text-sm leading-6 text-gray-100"
+              className="block px-3 py-1 w-full text-sm leading-6 text-gray-600 dark:text-gray-100"
             >
               Sign out
             </button>

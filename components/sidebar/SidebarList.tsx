@@ -81,7 +81,7 @@ const SidebarList: React.FC<SidebarListProps> = ({
             />
           </div>
 
-        <div className="px-4 text-xs sm:text-sm font-semibold leading-6 text-blue-400">
+        <div className="px-4 text-xs sm:text-sm font-semibold leading-6 text-blue-600 dark:text-blue-400">
           Your chats
         </div>
         <div className="px-4 flex-grow overflow-y-auto">

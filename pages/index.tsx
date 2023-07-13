@@ -312,7 +312,7 @@ export default function Home() {
               leaveFrom="opacity-100"
               leaveTo="opacity-0"
             >
-              <div className="fixed inset-0 bg-gray-900/80" />
+              <div className="fixed inset-0 dark:bg-gray-900/80" />
             </Transition.Child>
 
             <div className="fixed inset-0 flex">
@@ -349,7 +349,7 @@ export default function Home() {
                       </button>
                     </div>
                   </Transition.Child>
-                  <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-900 px-6 pb-4 ring-1 ring-white/10">
+                  <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white dark:bg-gray-900 px-6 pb-4 ring-1 ring-white/10">
                     <SidebarList
                       createChat={createChat}
                       namespaces={namespaces}
@@ -375,7 +375,7 @@ export default function Home() {
         </Transition.Root>
 
         <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col h-screen overflow-y-hidden">
-          <div className="flex grow flex-col bg-gray-900 pb-4 border-r border-gray-800 h-full">
+          <div className="flex grow flex-col dark:bg-gray-900 pb-4 border-r border-gray:200 dark:border-gray-800 h-full">
             <div className="flex h-8 shrink-0 items-center"></div>
             <SidebarList
               createChat={createChat}
@@ -408,7 +408,7 @@ export default function Home() {
               leaveFrom="opacity-100"
               leaveTo="opacity-0"
             >
-              <div className="fixed right-0 inset-0 bg-gray-900/80" />
+              <div className="fixed right-0 inset-0 dark:bg-gray-900/80" />
             </Transition.Child>
 
             <div className="fixed right-0 w-full lg:w-72  inset-y-0 flex">
@@ -445,7 +445,7 @@ export default function Home() {
                       </button>
                     </div>
                   </Transition.Child>
-                  <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-900 px-6 pb-4 ring-1 ring-white/10">
+                  <div className="flex grow flex-col gap-y-5 overflow-y-auto border-l bg-white dark:bg-gray-900 px-6 pb-4 ring-1 ring-white/10">
                     <SidebarRightList
                       createPrompt={createPrompt}
                       updatePrompt={updatePrompt}
@@ -494,7 +494,7 @@ export default function Home() {
             )}
 
             {nameSpaceHasChats && namespaces.length > 0 && (
-              <div className="fixed w-full bottom-0 flex bg-gradient-to-t from-gray-800 to-gray-800/0 justify-center lg:pr-72">
+              <div className="fixed w-full bottom-0 flex bg-gradient-to-t dark:from-gray-800 dark:to-gray-800/0 from-gray-300 to-white justify-center lg:pr-72">
                 <ChatForm
                   loading={loading}
                   promptList={promptList}

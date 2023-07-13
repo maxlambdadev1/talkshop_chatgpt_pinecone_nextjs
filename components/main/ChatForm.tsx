@@ -185,7 +185,7 @@ const ChatForm = ({
     <div className='w-full'>
       <div className='w-full max-w-4xl m-auto px-4 sm:px-8'>
         <div className='w-full'>
-          <div className='flex'>
+          <div className='flex pt-8 sm:pt-4'>
             <div className='w-full sm:w-96 sm:mr-2'>
               <Select
                 value={selectedData}
@@ -209,7 +209,7 @@ const ChatForm = ({
               <div className=''>
                 {promptList.map((prompt: any, index: number) => (
                   <button key={index}
-                    className='px-3 py-1 mb-1 mr-2 bg-gray-700/50 font-md text-gray-300 rounded-2xl hover:text-gray-100'
+                    className='px-3 py-1 mb-1 mr-2 bg-white text-gray-800 hover:bg-gray-100 dark:bg-gray-700/50 font-md rounded-2xl dark:text-gray-300 dark:hover:text-gray-100 border-2 border-gray-400'
                     onClick={() => onclickPrompt(prompt)}
                   >
                     {prompt.name}
@@ -231,7 +231,7 @@ const ChatForm = ({
               disabled={loading}
               onKeyDown={handleEnter}
               ref={otherRef}
-              className="flex items-center justify-center w-full text-xs sm:text-sm md:text-base rounded-lg border bg-gray-900 border-gray-700 placeholder-gray-400 text-white focus:outline-none resize-none whitespace-pre-wrap overflow-y-auto"
+              className="flex items-center justify-center w-full text-xs sm:text-sm md:text-base rounded-lg border dark:bg-gray-900 border-gray-700 placeholder-gray-400 text-gray-800 dark:text-white focus:outline-none resize-none whitespace-pre-wrap overflow-y-auto"
               autoFocus={false}
               rows={1}
               maxLength={2048}

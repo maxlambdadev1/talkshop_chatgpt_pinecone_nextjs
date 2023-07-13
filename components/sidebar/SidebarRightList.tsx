@@ -62,7 +62,7 @@ const SidebarRightList: React.FC<SidebarRightListProps> = ({
         <div className="px-4 sm:px-0 text-xs sm:text-sm font-semibold leading-6 text-blue-400">
           
         </div>
-        <div className="px-4 sm:px-0 flex-grow overflow-y-auto">
+        <div className="px-4 sm:px-0 flex-grow overflow-y-auto overflow-x-hidden">
           {promptList.length > 0 ? (
             <ListOfPrompts
               promptList={promptList}

@@ -4,6 +4,7 @@ import { Cog6ToothIcon } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/router';
 import ProfileDropdown from '../other/ProfileDropdown';
 import { signOut } from 'next-auth/react';
+import ToggleDarkLight from '../buttons/ToggleDarkLight';
 
 interface HeaderProps {
   setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -21,7 +22,7 @@ const Header: React.FC<HeaderProps> = ({ setSidebarOpen, sidebarOpen, setSidebar
 
   const router = useRouter();
   return (
-    <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-800 bg-gray-900 px-2 shadow-sm sm:gap-x-6 sm:px-1 lg:px-3 justify-between pointer-events-auto">
+    <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b dark:border-gray-800 bg-white dark:bg-gray-900 px-2 shadow-sm sm:gap-x-6 sm:px-1 lg:px-3 justify-between pointer-events-auto">
       <button
         type="button"
         className="-m-2.5 p-2.5 text-gray-700 lg:hidden"
@@ -36,9 +37,12 @@ const Header: React.FC<HeaderProps> = ({ setSidebarOpen, sidebarOpen, setSidebar
       </button>
 
       <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6 items-center">
-        <span className="flex-1 text-center items-center flex-shrink-0 rounded-md  px-2 py-1 text-xs sm:text-sm md:text-md md:text-lg font-medium text-blue-400">
+        <span className="flex-1 text-center items-center flex-shrink-0 rounded-md  px-2 py-1 text-xs sm:text-sm md:text-md md:text-lg font-medium text-blue-600 dark:text-blue-400">
           Talk Shop
         </span>
+      </div>
+      <div className='flex-shrink-0'>
+        <ToggleDarkLight />
       </div>
       {userRole === 'admin' && (
         <div className="flex-shrink-0" onClick={() => router.push('/namespace/create')}>
@@ -57,7 +61,7 @@ const Header: React.FC<HeaderProps> = ({ setSidebarOpen, sidebarOpen, setSidebar
 
       <div className="flex items-center gap-x-4 lg:gap-x-6">
         <div
-          className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-900/10"
+          className="hidden lg:block lg:h-6 lg:w-px dark:dark:lg:bg-gray-900/10"
           aria-hidden="true"
         />
         <ProfileDropdown

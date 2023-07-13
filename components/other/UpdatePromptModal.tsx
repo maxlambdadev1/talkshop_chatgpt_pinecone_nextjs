@@ -103,7 +103,7 @@ function UpdatePromptModal({ open, setOpen, prompt, updatePrompt, deleteImageFro
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-gray-800 bg-opacity-75 transition-opacity" />
+          <div className="fixed inset-0 bg-gray-100 dark:bg-gray-800 bg-opacity-75 transition-opacity" />
         </Transition.Child>
 
         <div className="fixed inset-0 z-10 overflow-y-auto">
@@ -117,25 +117,25 @@ function UpdatePromptModal({ open, setOpen, prompt, updatePrompt, deleteImageFro
               leaveFrom="opacity-100 translate-y-0 sm:scale-100"
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
-              <Dialog.Panel className="relative transform overflow-hidden rounded-lg border-white border rounded-md bg-gray-800 px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
-                <div className=' text-white '>
+              <Dialog.Panel className="relative transform overflow-hidden rounded-lg dark:border-white border rounded-md bg-white dark:bg-gray-800 px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                <div className='text-gray-600 dark:text-white '>
                   <div className="mt-2 sm:mt-3">
                     <label htmlFor='name' className='text-lg font-semibold'>Name : </label>
                     <input type='text' name='name' id='name'
-                      className='w-full rounded-lg    bg-gray-900/80'
+                      className='w-full rounded-lg   dark:bg-gray-900/80'
                       value={name} onChange={(e) => setName(e.target.value)} />
                   </div>
                   <div className="mt-2 sm:mt-3">
                     <label htmlFor='description' className='text-lg font-semibold'>Description : </label>
                     <textarea name='description' id='description'
-                      className='w-full rounded-lg    bg-gray-900/80'
+                      className='w-full rounded-lg    dark:bg-gray-900/80'
                       placeholder='A description for your prompt'
                       value={description} onChange={(e) => setDescription(e.target.value)} />
                   </div>
                   <div className="mt-2 sm:mt-3">
                     <label htmlFor='prompt' className='text-lg font-semibold'>Prompt : </label>
                     <textarea name='prompt' id='prompt'
-                      className='w-full rounded-lg  bg-gray-900/80'
+                      className='w-full rounded-lg  dark:bg-gray-900/80'
                       placeholder='Prompt content. Use {{}} to denote a variable. Ex: {{name}} is a {{adjective}} {{noun}}'
                       value={promptText} onChange={(e) => setPromptText(e.target.value)} />
                   </div>
@@ -177,7 +177,7 @@ function UpdatePromptModal({ open, setOpen, prompt, updatePrompt, deleteImageFro
                               onClick: (event) => event.stopPropagation(),
                             })}
                           />
-                          <span className="mt-2 sm:mt-2 block text-xs sm:text-sm font-semibold text-gray-100">
+                          <span className="mt-2 sm:mt-2 block text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-100">
                             {selectedFiles.length > 0
                               ? selectedFiles.map((file, index) => <p key={index}>{file.name}</p>)
                               : 'Drag and drop or click to select Image to upload'}

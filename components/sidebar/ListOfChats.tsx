@@ -46,8 +46,8 @@ const ListOfChats = ({
           key={chat._id}
           className={classNames(
             chat._id === selectedChatId
-              ? 'bg-gray-800 text-white'
-              : 'text-gray-400 hover:text-white hover:bg-gray-800',
+              ? 'bg-gray-200 dark:bg-gray-800 text-gray-950 dark:text-white'
+              : 'text-gray-600 dark:text-gray-400 hover:text-black hover:bg-gray-200 hover:dark:text-white hover:dark:bg-gray-800',
             'group flex w-full gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold cursor-pointer',
           )}
           onClick={() => handleChatClick(chat._id)}
@@ -56,7 +56,7 @@ const ListOfChats = ({
           {chat._id === selectedChatId && (
             <div className="ml-auto">
               <button
-                className="text-gray-300 hover:text-gray-400 ml-2"
+                className="text-gray-600 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-400 ml-2"
                 onClick={(e) => handleEditChatName(e, chat._id)}
               >
                 <PencilIcon className="h-4 w-4" />

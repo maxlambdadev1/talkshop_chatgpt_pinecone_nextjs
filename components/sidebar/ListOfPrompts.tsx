@@ -39,11 +39,11 @@ const ListOfPrompts = ({
 
   return (
     <>
-      <ul role="list" className="-mx-2 mt-2 px-2 pb-6 space-y-1">
+      <ul role="list" className="-mx-2 mt-2 px-2 pb-6 space-y-1 overflow:hidden">
         {[...promptList].map((prompt, index) => (
           <li
             key={prompt._id}
-            className={classNames('text-gray-400 hover:text-white hover:bg-gray-800',
+            className={classNames('text-gray-600 hover:text-gray-800 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800',
               'group flex justify-between w-full gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold cursor-pointer',
             )}
           >

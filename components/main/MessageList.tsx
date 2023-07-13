@@ -59,7 +59,7 @@ function MessageList({ messages, loading,  promptList }: MessageListProps) {
       let message1 = message.message;
       highlightItems.forEach(item => {
         if (!!item) {
-          let replacement = Math.floor((index - 1)%4 / 2) === 0 ? `<span class='bg-purple-800'>${item}</span>` : `<span class='bg-blue-800'>${item}</span>`
+          let replacement = Math.floor((index - 1)%4 / 2) === 0 ? `<span class='bg-purple-600'>${item}</span>` : `<span class='bg-blue-600'>${item}</span>`
           message1 = message1.replaceAll(item, replacement);
         }
       })
@@ -76,14 +76,14 @@ function MessageList({ messages, loading,  promptList }: MessageListProps) {
           {messages.map((message, index) => {
             const isApiMessage = message.type === 'apiMessage';
             const messageClasses = ` ${
-              isApiMessage ? 'bg-gray-700/50' : 'bg-gray-800'
+              isApiMessage ? 'dark:bg-gray-700/50' : 'bg-gray-100 dark:bg-gray-800'
             }`;
             const replacedMessage = replacePromptToHighlight(index);
             return (
               <div key={`chatMessage-${index}`} className={messageClasses}>
                 <div className="flex items-center justify-start max-w-full sm:max-w-4xl  mx-auto overflow-hidden px-2 sm:px-4">
                   <div className="flex flex-col w-full">
-                    <div className="w-full text-gray-300 p-2 sm:p-4 overflow-wrap break-words">
+                    <div className="w-full text-gray-900 dark:text-gray-300 p-2 sm:p-4 overflow-wrap break-words">
                       <span
                         className={`mt-2 inline-flex items-center rounded-md px-2 py-1 text-xs sm:text-sm font-medium ring-1 ring-inset ${
                           isApiMessage
@@ -157,7 +157,7 @@ function MessageList({ messages, loading,  promptList }: MessageListProps) {
         </div>
       </div>
       {loading && (
-        <div className="flex items-center justify-center h-32 w-full bg-gray-700/50">
+        <div className="flex items-center justify-center h-32 w-full dark:bg-gray-700/50">
           <div className="flex-shrink-0 p-1">
             <LoadingDots color="#04d9ff" />
           </div>

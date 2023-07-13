@@ -9,7 +9,7 @@ export default function Login() {
   const { data: session } = useSession();
 
   return (
-    <div className="bg-gray-900 ">
+    <div className="dark:bg-gray-900 ">
       <div className="relative isolate pt-14">
         <div
           className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"

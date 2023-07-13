@@ -207,7 +207,7 @@ export default function Create() {
   };
 
   return (
-    <div className="relative isolate min-h-screen bg-gray-900">
+    <div className="relative isolate min-h-screen dark:bg-gray-900">
       <div className="mx-auto grid max-w-7xl grid-cols-1 lg:grid-cols-2">
         <div className="relative px-6 pb-12 pt-12 sm:pt-32 lg:static lg:px-8 lg:py-20 ">
           <div className="mx-auto max-w-xl lg:mx-0 lg:max-w-lg">
@@ -223,7 +223,7 @@ export default function Create() {
 
               <div className="flex justify-between items-center space-x-2 align-center mb-2">
                 {namespaces.length > 0 ? (
-                  <h2 className="mb-4 text-xl text-center sm:text-3xl sm:text-left font-bold text-white">
+                  <h2 className="mb-4 text-xl text-center sm:text-3xl sm:text-left font-bold text-gray-800 dark:text-white">
                     Your namespaces
                   </h2>
                 ) : (
@@ -257,14 +257,14 @@ export default function Create() {
                 </div>
               </div>
 
-              <ul role="list" className="grid grid-cols-2 gap-4">
+              <ul role="list" className="grid grid-cols-2 gap-4 py-2">
                 {namespaces.map((namespace) => (
                   <li
                     key={namespace.realName}
-                    className="bg-gray-800/60 rounded-lg shadow px-5 py-4 flex items-center justify-between space-x-4"
+                    className="bg-gray-200 dark:bg-gray-800/60 rounded-lg shadow px-5 py-4 flex items-center justify-between space-x-4"
                   >
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-white truncate">
+                      <p className="text-sm font-medium text-gray-600 dark:text-white truncate">
                         {namespace.name}
                       </p>
                     </div>
@@ -312,7 +312,7 @@ export default function Create() {
               {' '}
               Creating namespaces
             </h2>
-            <p className="mt-4 sm:mt-6 text-sm sm:text-lg leading-6 sm:leading-8 text-gray-300">
+            <p className="mt-4 sm:mt-6 text-sm sm:text-lg leading-6 sm:leading-8 text-gray-600 dark:text-gray-300">
               {' '}
               Treat namespaces like topics of conversation. You can create as
               many as you like, and they can be used to organize your data.
@@ -344,7 +344,7 @@ export default function Create() {
                     onClick: (event) => event.stopPropagation(),
                   })}
                 />
-                <span className="mt-2 sm:mt-2 block text-xs sm:text-sm font-semibold text-gray-100">
+                <span className="mt-2 sm:mt-2 block text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-100">
                   {selectedFiles.length > 0
                     ? selectedFiles.map((file, index) => <p key={index}>{file.name}</p>)
                     : 'Drag and drop or click to select files to upload'}
@@ -372,7 +372,7 @@ export default function Create() {
                 <div className="flex items-center">
                   <label
                     htmlFor="chunkSize"
-                    className="block text-sm font-medium leading-6 text-gray-300"
+                    className="block text-sm font-medium leading-6 text-gray-600 dark:text-gray-300"
                   >
                     Chunk size
                   </label>
@@ -394,14 +394,14 @@ export default function Create() {
                     className="w-full"
                   />
 
-                  <div className="text-center text-gray-100">{chunkSize}</div>
+                  <div className="text-center  text-gray-600 dark:text-gray-100">{chunkSize}</div>
                 </div>
               </div>
               <div>
                 <div className="flex items-center">
                   <label
                     htmlFor="overlapSize"
-                    className="block text-sm font-medium leading-6 text-gray-300"
+                    className="block text-sm font-medium leading-6 text-gray-600 dark:text-gray-300"
                   >
                     Overlap size
                   </label>
@@ -421,7 +421,7 @@ export default function Create() {
                     onChange={(e) => setOverlapSize(Number(e.target.value))}
                     className="w-full"
                   />
-                  <div className="text-center text-gray-100">{overlapSize}%</div>
+                  <div className="text-center text-gray-600 dark:text-gray-100">{overlapSize}%</div>
                 </div>
               </div>
             </div>
@@ -440,7 +440,7 @@ export default function Create() {
                 <div className="sm:col-span-2">
                   <label
                     htmlFor="email"
-                    className="block text-sm font-semibold leading-6 text-white"
+                    className="block text-sm font-semibold leading-6 text-gray-600 dark:text-white"
                   >
                     Namespace name
                   </label>
@@ -448,7 +448,7 @@ export default function Create() {
                   <div className="mt-2.5">
                     <input
                       type="text"
-                      className="block w-full rounded-md border-0 bg-white/5 px-2 sm:px-3.5 py-1.5 sm:py-2 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 text-sm sm:text-base sm:leading-6 opacity-50"
+                      className="block w-full rounded-md border-0 bg-white/5 px-2 sm:px-3.5 py-1.5 sm:py-2  text-gray-600 dark:text-white shadow-sm ring-1 ring-inset dark:ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 text-sm sm:text-base sm:leading-6 opacity-50"
                       value={namespaceName}
                       onChange={(e) => setNamespaceName(e.target.value)}
                     />
@@ -474,7 +474,7 @@ export default function Create() {
               </div>
             )}
             {uploadedFiles.length > 0 && (
-              <div className='w-full mt-2 sm:mt-4  text-white '>
+              <div className='w-full mt-2 sm:mt-4   text-gray-600 dark:text-white '>
                 <h2 className='text-lg font-semibold my-2'>Uploaded Files</h2>
                 {uploadedFiles.map((fileName, index) => (
                   <p key={index} className='text-sm'>{fileName}</p>

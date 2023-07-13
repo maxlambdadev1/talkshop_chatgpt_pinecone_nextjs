@@ -46,7 +46,7 @@ const KeyForm: React.FC<KeyFormProps> = ({
             onFocus={handleFocus}
             onBlur={handleBlur}
             placeholder={`Enter ${keyName}`}
-            className="w-full pr-10 py-3 text-sm text-gray-300 placeholder-gray-500 bg-gray-800 border border-gray-700 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            className="w-full pr-10 py-3 text-sm text-gray-300 placeholder-gray-500 dark:bg-gray-800 border border-gray-700 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
           />
           {isFocused && (
             <button

@@ -27,7 +27,7 @@ const ListOfNamespaces = ({
   return (
     <Menu as="div" className="w-full relative inline-block text-left">
       <div>
-        <Menu.Button className="inline-flex items-center w-full justify-center gap-x-1.5 rounded-md bg-gray-800 px-3 py-2 text-sm font-semibold text-white shadow-sm ring-1 ring-inset ring-gray-700 hover:bg-gray-700">
+        <Menu.Button className="inline-flex items-center w-full justify-center gap-x-1.5 rounded-md dark:bg-gray-800 px-3 py-2 text-sm font-semibold text-white shadow-sm ring-1 ring-inset ring-gray-700 hover:bg-gray-700">
           {isLoadingNamespaces ? (
             <span className="relative">
               <LoadingDots
@@ -62,7 +62,7 @@ const ListOfNamespaces = ({
         leaveFrom="transform opacity-100 scale-100"
         leaveTo="transform opacity-0 scale-95"
       >
-        <Menu.Items className="absolute right-0 z-10 mt-2 w-full origin-top-right divide-y divide-gray-700 rounded-md bg-gray-800 shadow-lg ring-1 ring-gray-800 ring-opacity-5 focus:outline-none">
+        <Menu.Items className="absolute right-0 z-10 mt-2 w-full origin-top-right divide-y divide-gray-700 rounded-md dark:bg-gray-800 shadow-lg ring-1 ring-gray-800 ring-opacity-5 focus:outline-none">
           {namespaces.map((namespace) => (
             <div className="py-1" key={namespace.realName}>
               <Menu.Item>
