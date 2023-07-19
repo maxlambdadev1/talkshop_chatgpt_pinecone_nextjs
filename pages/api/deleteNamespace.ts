@@ -35,10 +35,10 @@ export default async function handler(
     await connectDB();
     const existingNamespace = await Namespace.findOne({
       realName: namespace as string,
-      userEmail: userEmail as string,
+      // userEmail: userEmail as string,
     });
     if (!existingNamespace) {
-      return res.status(400).json({ message: "You cann't delete the namespace" });
+      return res.status(400).json({ message: "There is no the namespace" });
     }
 
     if (!pinecone) {
@@ -54,7 +54,7 @@ export default async function handler(
     });
 
     const ChatModelTyped = ChatModel as mongoose.Model<IChat>;
-    await Namespace.deleteOne({ realName: namespace, userEmail });
+    await Namespace.deleteOne({ realName: namespace });
     await ChatModelTyped.deleteMany({  namespace, userEmail });
     await Message.deleteMany({ namespace, userEmail });
     await SFile.deleteMany({ namespace });
