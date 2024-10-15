@@ -33,11 +33,6 @@
 ## Local setup & development
 
 If you'd like to run this locally and deploy your own version, follow the steps below.
-
-### Clone the repo
-
-```
-git clone https://github.com/cf62/talkshop.git
 ```
 
 ---
